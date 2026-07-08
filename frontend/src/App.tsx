@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, type HealthStatus } from './lib/api'
+import { AuthPanel } from './components/AuthPanel'
+import { RepoAnalyzer } from './components/RepoAnalyzer'
+import { useSession } from './lib/session'
 
 function StatusDot({ ok }: { ok: boolean | undefined }) {
   const color = ok === undefined ? 'bg-text-dim' : ok ? 'bg-safe' : 'bg-danger'
@@ -12,17 +15,21 @@ function App() {
     queryFn: () => apiGet<HealthStatus>('/health'),
     refetchInterval: 15_000,
   })
+  const { data: user } = useSession()
 
   return (
     <div className="mx-auto min-h-svh max-w-3xl px-6 py-16">
-      <header className="mb-10">
-        <h1 className="text-2xl font-semibold text-text-bright">
-          IssueMatch AI
-        </h1>
-        <p className="mt-1 text-sm text-text-dim">
-          Find the right open-source issue for the right contributor — and
-          know exactly why it's safe to touch.
-        </p>
+      <header className="mb-10 flex items-start justify-between gap-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-text-bright">
+            IssueMatch AI
+          </h1>
+          <p className="mt-1 text-sm text-text-dim">
+            Find the right open-source issue for the right contributor — and
+            know exactly why it's safe to touch.
+          </p>
+        </div>
+        <AuthPanel />
       </header>
 
       <section className="rounded-lg border border-border bg-surface-1 p-6">
@@ -59,6 +66,8 @@ function App() {
           </div>
         </div>
       </section>
+
+      {user && <RepoAnalyzer />}
     </div>
   )
 }
