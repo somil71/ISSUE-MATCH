@@ -4,6 +4,7 @@ import { Logo } from './components/Logo'
 import { RepoWorkspace } from './components/RepoWorkspace'
 import { SkillProfile } from './components/SkillProfile'
 import { SystemStatus } from './components/SystemStatus'
+import { TrustPanel } from './components/TrustPanel'
 import { useSession } from './lib/session'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             </span>
           </div>
           <div className="flex items-center gap-5">
+            <TrustPanel />
             <SystemStatus />
             <AuthPanel />
           </div>

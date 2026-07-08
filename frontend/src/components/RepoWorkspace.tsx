@@ -5,6 +5,7 @@ import {
   apiGet,
   apiPostJson,
   type FunctionMetric,
+  type LabelAccuracy,
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
@@ -325,6 +326,66 @@ function CodebaseLandmarks({ functions }: { functions: FunctionMetric[] }) {
   )
 }
 
+function LabelAccuracyScoreboard({ accuracy }: { accuracy: LabelAccuracy }) {
+  if (accuracy.github_labeled_count === 0) return null
+
+  return (
+    <div className="mb-4 rounded-lg border border-border bg-surface-0 p-3">
+      <p className="text-xs text-text-dim">
+        GitHub labels{' '}
+        <span className="metric text-text-bright">
+          {accuracy.github_labeled_count}
+        </span>{' '}
+        issue{accuracy.github_labeled_count === 1 ? '' : 's'} here as
+        beginner-friendly.
+        {accuracy.verified_count > 0 ? (
+          <>
+            {' '}
+            Our engine checked the actual code named in{' '}
+            <span className="metric text-text-bright">
+              {accuracy.verified_count}
+            </span>{' '}
+            of them
+            {accuracy.disagreement_count > 0 ? (
+              <>
+                , and found{' '}
+                <span className="metric font-medium text-danger">
+                  {accuracy.disagreement_count}
+                </span>{' '}
+                quietly touching high-risk code anyway.
+              </>
+            ) : (
+              ' — every one checked out as genuinely low-risk.'
+            )}
+          </>
+        ) : (
+          ' None of them explicitly name a function or file we could verify against.'
+        )}
+      </p>
+      {accuracy.disagreements.length > 0 && (
+        <ul className="mt-2 flex flex-col gap-1">
+          {accuracy.disagreements.map((d) => (
+            <li key={d.number} className="text-xs">
+              <a
+                href={d.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-danger hover:underline"
+              >
+                #{d.number} {d.title}
+              </a>
+              <span className="metric ml-2 text-text-dim">
+                touches {d.risky_reference.name ?? d.risky_reference.file}{' '}
+                (Here Be Dragons)
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export function RepoWorkspace() {
   const [repoInput, setRepoInput] = useState('')
   const [search, setSearch] = useState('')
@@ -622,7 +683,10 @@ export function RepoWorkspace() {
                 </>
               )}
             </p>
-            <ul className="mt-3 flex flex-col gap-3">
+            <div className="mt-3">
+              <LabelAccuracyScoreboard accuracy={issues.data.label_accuracy} />
+            </div>
+            <ul className="flex flex-col gap-3">
               {issues.data.issues.map((issue) => (
                 <li
                   key={issue.number}

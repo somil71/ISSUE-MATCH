@@ -1,6 +1,7 @@
 import httpx
 
 from app.core.config import get_settings
+from app.services import network_trust
 
 AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 TOKEN_URL = "https://github.com/login/oauth/access_token"
@@ -9,6 +10,18 @@ API_URL = "https://api.github.com"
 
 class GitHubOAuthError(Exception):
     pass
+
+
+async def _request(method: str, url: str, **kwargs) -> httpx.Response:
+    """The only place an HTTP request leaves this backend. Every call is
+    routed through here so the trust panel's list of contacted hosts is
+    generated from what actually happened, not a claim that could drift
+    out of sync with the code."""
+    network_trust.record_call(httpx.URL(url).host)
+    async with httpx.AsyncClient() as client:
+        response = await client.request(method, url, **kwargs)
+        response.raise_for_status()
+        return response
 
 
 def build_authorize_url(state: str) -> str:
@@ -27,6 +40,7 @@ def build_authorize_url(state: str) -> str:
 
 async def exchange_code_for_token(code: str, state: str) -> str:
     settings = get_settings()
+    network_trust.record_call(httpx.URL(TOKEN_URL).host)
     async with httpx.AsyncClient() as client:
         response = await client.post(
             TOKEN_URL,
@@ -48,28 +62,26 @@ async def exchange_code_for_token(code: str, state: str) -> str:
 
 
 async def fetch_authenticated_user(access_token: str) -> dict:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_URL}/user",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github+json",
-            },
-        )
-        response.raise_for_status()
+    response = await _request(
+        "GET",
+        f"{API_URL}/user",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/vnd.github+json",
+        },
+    )
     return response.json()
 
 
 async def fetch_repo(full_name: str, access_token: str) -> dict:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_URL}/repos/{full_name}",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github+json",
-            },
-        )
-        response.raise_for_status()
+    response = await _request(
+        "GET",
+        f"{API_URL}/repos/{full_name}",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/vnd.github+json",
+        },
+    )
     return response.json()
 
 
@@ -79,16 +91,15 @@ async def fetch_user_repo_languages(
     """Primary languages of the user's own non-fork public repos, ranked by
     frequency — a lightweight, non-AI stand-in for "skills inferred from
     GitHub activity" (Feature 2)."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_URL}/users/{username}/repos",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github+json",
-            },
-            params={"per_page": per_page, "sort": "pushed", "type": "owner"},
-        )
-        response.raise_for_status()
+    response = await _request(
+        "GET",
+        f"{API_URL}/users/{username}/repos",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/vnd.github+json",
+        },
+        params={"per_page": per_page, "sort": "pushed", "type": "owner"},
+    )
 
     counts: dict[str, int] = {}
     for repo in response.json():
@@ -102,15 +113,14 @@ async def fetch_user_repo_languages(
 
 
 async def fetch_open_issues(full_name: str, access_token: str, per_page: int = 30) -> list[dict]:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_URL}/repos/{full_name}/issues",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github+json",
-            },
-            params={"state": "open", "per_page": per_page},
-        )
-        response.raise_for_status()
+    response = await _request(
+        "GET",
+        f"{API_URL}/repos/{full_name}/issues",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/vnd.github+json",
+        },
+        params={"state": "open", "per_page": per_page},
+    )
     # GitHub's issues endpoint also returns pull requests; exclude those.
     return [issue for issue in response.json() if "pull_request" not in issue]

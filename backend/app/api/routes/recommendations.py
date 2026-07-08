@@ -8,6 +8,7 @@ from app.services import analysis_cache, github_client
 from app.services.beginner_labels import has_beginner_friendly_label
 from app.services.explanation import explain_issue
 from app.services.issue_code_refs import extract_backtick_references, match_code_references
+from app.services.label_accuracy import compute_label_accuracy
 from app.services.recommendation import rank_issues
 
 router = APIRouter()
@@ -72,4 +73,5 @@ async def ranked_issues(owner: str, name: str, user: User = Depends(get_current_
         "inferred_skills": inferred_languages,
         "analyzed": cached is not None,
         "issues": ranked,
+        "label_accuracy": compute_label_accuracy(ranked),
     }

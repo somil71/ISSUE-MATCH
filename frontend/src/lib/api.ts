@@ -140,10 +140,31 @@ export interface RankedIssue {
   code_references: CodeReference[]
 }
 
+export interface LabelDisagreement {
+  number: number
+  title: string
+  url: string
+  risky_reference: CodeReference
+}
+
+export interface LabelAccuracy {
+  github_labeled_count: number
+  verified_count: number
+  disagreement_count: number
+  disagreements: LabelDisagreement[]
+}
+
 export interface RankedIssuesResponse {
   repo: string
   user_skills: string[]
   inferred_skills: string[]
   analyzed: boolean
   issues: RankedIssue[]
+  label_accuracy: LabelAccuracy
+}
+
+export interface NetworkTrustSummary {
+  total_calls: number
+  hosts: { host: string; count: number }[]
+  since: string | null
 }
