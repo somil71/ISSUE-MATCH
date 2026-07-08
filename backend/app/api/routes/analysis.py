@@ -4,8 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.routes.auth import get_current_user
 from app.core.security import decrypt_token
 from app.db.models import User
-from app.services import call_graph, churn, github_client, repo_fetcher, skill_gap, test_proximity
+from app.services import (
+    analysis_cache,
+    call_graph,
+    churn,
+    github_client,
+    repo_fetcher,
+    skill_gap,
+    test_proximity,
+)
 from app.services.blast_radius import compute_blast_radius
+from app.services.blast_radius_summary import summarize
 from app.services.complexity import cyclomatic_complexity
 from app.services.parsing.engine import parse_file
 from app.services.parsing.languages import LANGUAGES
@@ -74,10 +83,13 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
             "normalized_churn": round(blast_radius[fid].normalized_churn, 4),
             "blast_radius_score": round(blast_radius[fid].score, 4),
             "bucket": blast_radius[fid].bucket,
+            "summary": summarize(blast_radius[fid]),
         }
         for fid, fm in fan_in_metrics.items()
     ]
     functions.sort(key=lambda f: f["blast_radius_score"], reverse=True)
+
+    await analysis_cache.store_analysis(full_name, commit_sha, functions)
 
     try:
         inferred_languages = await github_client.fetch_user_repo_languages(

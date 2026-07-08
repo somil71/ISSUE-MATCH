@@ -253,11 +253,14 @@ export function RepoWorkspace() {
       apiGet<RankedIssuesResponse>(`/repos/${owner}/${name}/issues`),
   })
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     const parsed = parseOwnerRepo(repoInput)
     if (!parsed) return
-    analysis.mutate(parsed)
+    // Analyze first and await it so the backend's per-repo cache is warm
+    // before /issues runs — that cache is what lets an issue's text be
+    // cross-referenced against real function-level blast radius data.
+    await analysis.mutateAsync(parsed).catch(() => undefined)
     issues.mutate(parsed)
   }
 
@@ -380,6 +383,7 @@ export function RepoWorkspace() {
                     <th className="px-3 py-2 font-medium">Signals</th>
                     <th className="px-3 py-2 font-medium text-right">Test</th>
                     <th className="px-3 py-2 font-medium">Bucket</th>
+                    <th className="px-3 py-2 font-medium">Why</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -412,11 +416,14 @@ export function RepoWorkspace() {
                       <td className="px-3 py-2">
                         <BucketBadge bucket={fn.bucket} />
                       </td>
+                      <td className="max-w-xs px-3 py-2 text-xs text-text-dim">
+                        {fn.summary}
+                      </td>
                     </tr>
                   ))}
                   {filteredFunctions.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-3 py-6 text-center text-text-dim">
+                      <td colSpan={6} className="px-3 py-6 text-center text-text-dim">
                         No functions match your filter.
                       </td>
                     </tr>
@@ -471,14 +478,24 @@ export function RepoWorkspace() {
                   className="rounded-lg border border-border p-4 transition-colors hover:border-border-bright"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <a
-                      href={issue.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-medium text-text-bright hover:text-accent-bright hover:underline"
-                    >
-                      #{issue.number} {issue.title}
-                    </a>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a
+                        href={issue.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-medium text-text-bright hover:text-accent-bright hover:underline"
+                      >
+                        #{issue.number} {issue.title}
+                      </a>
+                      {issue.beginner_friendly_label && (
+                        <span
+                          className="whitespace-nowrap rounded-full bg-safe-bg px-2 py-0.5 text-xs font-medium text-safe"
+                          title="GitHub carries a beginner-friendly label (good first issue / help wanted / etc.) on this issue"
+                        >
+                          GitHub: beginner-friendly
+                        </span>
+                      )}
+                    </div>
                     <span className="metric shrink-0 text-xs text-text-dim">
                       similarity {issue.similarity.toFixed(3)}
                     </span>
@@ -510,9 +527,33 @@ export function RepoWorkspace() {
                       </span>
                     </p>
                   )}
+                  {issue.code_references.length > 0 && (
+                    <div className="mt-2 flex flex-col gap-1 rounded-md border border-border bg-surface-0 p-2">
+                      <span className="text-[11px] text-text-dim">
+                        Our engine's take on the code this issue names:
+                      </span>
+                      {issue.code_references.map((ref, i) => (
+                        <div
+                          key={i}
+                          className="metric flex items-center justify-between gap-2 text-xs"
+                        >
+                          <span className="text-text-bright">
+                            {ref.name ?? ref.file}
+                          </span>
+                          {ref.bucket && <BucketBadge bucket={ref.bucket} />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
+            {issues.data.issues.length > 0 && !issues.data.analyzed && (
+              <p className="mt-2 text-xs text-text-dim">
+                Code-level cross-references need the repo analyzed first —
+                run Analyze above to see them.
+              </p>
+            )}
             {issues.data.issues.length === 0 && (
               <p className="text-sm text-text-dim">
                 This repo has no open issues right now — try another repo to

@@ -96,6 +96,7 @@ export interface FunctionMetric {
   normalized_churn: number
   blast_radius_score: number
   bucket: BlastRadiusBucket
+  summary: string
 }
 
 export interface SkillGap {
@@ -121,6 +122,12 @@ export interface IssueLabel {
   color: string
 }
 
+export interface CodeReference {
+  name: string | null
+  file: string
+  bucket: BlastRadiusBucket | null
+}
+
 export interface RankedIssue {
   number: number
   title: string
@@ -129,11 +136,14 @@ export interface RankedIssue {
   similarity: number
   overlapping_terms: string[]
   explanation: string
+  beginner_friendly_label: boolean
+  code_references: CodeReference[]
 }
 
 export interface RankedIssuesResponse {
   repo: string
   user_skills: string[]
   inferred_skills: string[]
+  analyzed: boolean
   issues: RankedIssue[]
 }
