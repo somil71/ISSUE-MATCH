@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import {
   ApiError,
@@ -237,6 +237,11 @@ export function RepoWorkspace() {
   const [repoInput, setRepoInput] = useState('')
   const [search, setSearch] = useState('')
   const [bucketFilter, setBucketFilter] = useState<BucketFilter>('all')
+  const tableScrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    tableScrollRef.current?.scrollTo({ top: 0 })
+  }, [search, bucketFilter])
 
   const analysis = useMutation({
     mutationFn: ([owner, name]: [string, string]) =>
@@ -355,12 +360,18 @@ export function RepoWorkspace() {
                   </button>
                 ))}
               </div>
-              <span className="metric text-xs text-text-dim">
-                {filteredFunctions.length} shown
+              <span className="metric text-xs font-medium text-text-bright">
+                {filteredFunctions.length}{' '}
+                <span className="font-normal text-text-dim">
+                  of {analysis.data?.functions.length ?? 0} shown
+                </span>
               </span>
             </div>
 
-            <div className="mt-3 max-h-[32rem] overflow-y-auto rounded-md border border-border">
+            <div
+              ref={tableScrollRef}
+              className="mt-3 max-h-[32rem] overflow-y-auto rounded-md border border-border"
+            >
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-surface-2 text-text-dim">
                   <tr>
