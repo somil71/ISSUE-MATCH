@@ -18,6 +18,12 @@
   --color-accent-bright: #818cf8;
   --color-accent-bg: rgba(99, 102, 241, 0.12);
 
+  /* Decorative-only card accents — never used for status/data meaning. */
+  --color-violet: #a855f7;
+  --color-violet-bg: rgba(168, 85, 247, 0.12);
+  --color-cyan: #06b6d4;
+  --color-cyan-bg: rgba(6, 182, 212, 0.12);
+
   --color-safe: #10b981;
   --color-safe-bright: #34d399;
   --color-safe-bg: rgba(16, 185, 129, 0.12);

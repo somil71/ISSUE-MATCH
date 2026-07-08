@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiPatchJson, type CurrentUser } from '../lib/api'
+import { TagIcon } from './Icons'
+import { SectionCard } from './SectionCard'
 
 const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'advanced'] as const
 
@@ -46,17 +48,14 @@ export function SkillProfile({ user }: { user: CurrentUser }) {
   }
 
   return (
-    <section className="rounded-xl border border-border bg-surface-1 p-6">
-      <h2 className="text-sm font-medium text-text-bright">
-        Your skill profile
-      </h2>
-      <p className="mt-1 text-sm text-text-dim">
-        Compared against issue text via local sentence embeddings — no
-        external API.
-      </p>
-
+    <SectionCard
+      icon={<TagIcon />}
+      title="Your skill profile"
+      description="Compared against issue text via local sentence embeddings — no external API."
+      accent="accent"
+    >
       <div
-        className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-0 p-2 focus-within:border-accent"
+        className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-0 p-2 focus-within:border-accent"
         onClick={(e) => {
           if (e.currentTarget === e.target) {
             e.currentTarget.querySelector('input')?.focus()
@@ -120,6 +119,6 @@ export function SkillProfile({ user }: { user: CurrentUser }) {
       {mutation.isSuccess && (
         <span className="mt-2 block text-sm text-safe">Saved.</span>
       )}
-    </section>
+    </SectionCard>
   )
 }

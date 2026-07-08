@@ -8,6 +8,8 @@ import {
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
+import { GaugeIcon, SparklesIcon, TargetIcon } from './Icons'
+import { SectionCard } from './SectionCard'
 
 function parseOwnerRepo(input: string): [string, string] | null {
   let cleaned = input.trim()
@@ -188,17 +190,13 @@ function ReadinessCard({ analysis }: { analysis: RepoAnalysis }) {
   const gapPenalty = 1 / (1 + skill_gap.gap.length)
 
   return (
-    <section className="mt-6 rounded-xl border border-border bg-surface-1 p-6">
-      <h2 className="text-sm font-medium text-text-bright">
-        Your readiness for this repo
-      </h2>
-      <p className="mt-1 text-sm text-text-dim">
-        Repo-level, not per-issue — real issue text rarely names the exact
-        files it touches, so this compares your skills against the repo's
-        actual dependency manifests instead of guessing.
-      </p>
-
-      <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-center">
+    <SectionCard
+      icon={<GaugeIcon />}
+      title="Your readiness for this repo"
+      description="Repo-level, not per-issue — real issue text rarely names the exact files it touches, so this compares your skills against the repo's actual dependency manifests instead of guessing."
+      accent="cyan"
+    >
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
         <ReadinessGauge score={readiness_score} />
         <div className="flex-1">
           <p className="metric text-xs text-text-dim">
@@ -231,7 +229,7 @@ function ReadinessCard({ analysis }: { analysis: RepoAnalysis }) {
           </div>
         </div>
       </div>
-    </section>
+    </SectionCard>
   )
 }
 
@@ -276,17 +274,13 @@ export function RepoWorkspace() {
 
   return (
     <>
-      <section className="mt-6 rounded-xl border border-border bg-surface-1 p-6">
-        <h2 className="text-sm font-medium text-text-bright">
-          Blast Radius Engine — analyze a repo
-        </h2>
-        <p className="mt-1 text-sm text-text-dim">
-          Real tree-sitter parse + call graph + cyclomatic complexity + test
-          proximity + git churn, computed live. No AI, no external API — just
-          the repo you name.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-4">
+      <SectionCard
+        icon={<TargetIcon />}
+        title="Blast Radius Engine — analyze a repo"
+        description="Real tree-sitter parse + call graph + cyclomatic complexity + test proximity + git churn, computed live. No AI, no external API — just the repo you name."
+        accent="violet"
+      >
+        <form onSubmit={handleSubmit}>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-0 px-3 py-2.5 transition-colors focus-within:border-accent">
             <svg
               viewBox="0 0 16 16"
@@ -421,19 +415,16 @@ export function RepoWorkspace() {
             </div>
           </div>
         )}
-      </section>
+      </SectionCard>
 
       {analysis.isSuccess && <ReadinessCard analysis={analysis.data} />}
 
-      <section className="mt-6 rounded-xl border border-border bg-surface-1 p-6">
-        <h2 className="text-sm font-medium text-text-bright">
-          Recommended issues
-        </h2>
-        <p className="mt-1 text-sm text-text-dim">
-          Local sentence embeddings rank open issues against your skill
-          profile — overlapping terms shown are TF-IDF weighted, not a bare
-          similarity float.
-        </p>
+      <SectionCard
+        icon={<SparklesIcon />}
+        title="Recommended issues"
+        description="Local sentence embeddings rank open issues against your skill profile — overlapping terms shown are TF-IDF weighted, not a bare similarity float."
+        accent="accent"
+      >
 
         {issues.isPending && (
           <p className="mt-4 text-sm text-text-dim">Ranking open issues…</p>
@@ -519,7 +510,7 @@ export function RepoWorkspace() {
             )}
           </div>
         )}
-      </section>
+      </SectionCard>
     </>
   )
 }
