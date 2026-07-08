@@ -1,12 +1,12 @@
 const API_BASE = '/api'
 
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
+  status: number
+
+  constructor(message: string, status: number) {
     super(message)
     this.name = 'ApiError'
+    this.status = status
   }
 }
 
@@ -116,11 +116,16 @@ export interface RepoAnalysis {
   readiness_score: number
 }
 
+export interface IssueLabel {
+  name: string
+  color: string
+}
+
 export interface RankedIssue {
   number: number
   title: string
   url: string
-  labels: string[]
+  labels: IssueLabel[]
   similarity: number
   overlapping_terms: string[]
   explanation: string

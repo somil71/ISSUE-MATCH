@@ -12,9 +12,9 @@ export function AuthPanel() {
       <button
         type="button"
         onClick={loginWithGitHub}
-        className="rounded-md bg-surface-2 px-4 py-2 text-sm font-medium text-text-bright hover:bg-border"
+        className="rounded-md border border-border-bright px-3.5 py-1.5 text-sm font-medium text-text-bright transition-colors hover:bg-surface-2"
       >
-        Sign in with GitHub
+        Sign in
       </button>
     )
   }
@@ -24,13 +24,13 @@ export function AuthPanel() {
       <img
         src={user.avatar_url}
         alt=""
-        className="h-8 w-8 rounded-full border border-border"
+        className="h-7 w-7 rounded-full ring-2 ring-accent/30"
       />
       <span className="text-sm text-text-bright">{user.username}</span>
       <button
         type="button"
         onClick={() => logout()}
-        className="text-sm text-text-dim hover:text-text-bright"
+        className="text-sm text-text-dim transition-colors hover:text-text-bright"
       >
         Sign out
       </button>

@@ -37,7 +37,10 @@ async def ranked_issues(owner: str, name: str, user: User = Depends(get_current_
             "number": issues[m.issue_index]["number"],
             "title": issues[m.issue_index]["title"],
             "url": issues[m.issue_index]["html_url"],
-            "labels": [label["name"] for label in issues[m.issue_index].get("labels", [])],
+            "labels": [
+                {"name": label["name"], "color": label.get("color", "888888")}
+                for label in issues[m.issue_index].get("labels", [])
+            ],
             "similarity": round(m.similarity, 4),
             "overlapping_terms": m.overlapping_terms,
             "explanation": explain_issue(issues[m.issue_index]["title"]),
