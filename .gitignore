@@ -1,0 +1,19 @@
+# env
+.env
+.env.local
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# node
+node_modules/
+dist/
+
+# workspace (repo clones for analysis)
+backend/workspace/
+
+# os
+.DS_Store
+Thumbs.db
