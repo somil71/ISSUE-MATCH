@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.routes.auth import get_current_user
 from app.core.security import decrypt_token
 from app.db.models import User
-from app.services import call_graph, github_client, repo_fetcher
+from app.services import call_graph, churn, github_client, repo_fetcher, test_proximity
+from app.services.blast_radius import compute_blast_radius
 from app.services.complexity import cyclomatic_complexity
 from app.services.parsing.engine import parse_file
 from app.services.parsing.languages import LANGUAGES
@@ -41,24 +42,38 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
         if parsed:
             parsed_files.append(parsed)
 
-    metrics = call_graph.build_fan_in(parsed_files)
+    fan_in_metrics = call_graph.build_fan_in(parsed_files)
+    complexity_by_id = {
+        fid: cyclomatic_complexity(fm.function.node, fm.function.source, fm.function.language)
+        for fid, fm in fan_in_metrics.items()
+    }
+    tested_names = test_proximity.build_tested_names(parsed_files)
+
+    try:
+        churn_by_file = churn.compute_file_churn(repo_path)
+    except churn.ChurnError:
+        churn_by_file = {}
+
+    blast_radius = compute_blast_radius(fan_in_metrics, complexity_by_id, tested_names, churn_by_file)
 
     functions = [
         {
-            "id": fm.function.id,
+            "id": fid,
             "name": fm.function.name,
             "file": fm.function.relative_path,
             "start_line": fm.function.start_line,
             "end_line": fm.function.end_line,
             "fan_in": fm.fan_in,
             "name_is_ambiguous": fm.name_is_ambiguous,
-            "cyclomatic_complexity": cyclomatic_complexity(
-                fm.function.node, fm.function.source, fm.function.language
-            ),
+            "cyclomatic_complexity": complexity_by_id[fid],
+            "has_test_coverage": blast_radius[fid].has_test_coverage,
+            "churn_intensity": round(blast_radius[fid].churn_intensity, 4),
+            "blast_radius_score": round(blast_radius[fid].score, 4),
+            "bucket": blast_radius[fid].bucket,
         }
-        for fm in metrics.values()
+        for fid, fm in fan_in_metrics.items()
     ]
-    functions.sort(key=lambda f: f["fan_in"], reverse=True)
+    functions.sort(key=lambda f: f["blast_radius_score"], reverse=True)
 
     return {
         "repo": full_name,

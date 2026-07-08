@@ -73,6 +73,34 @@ async def fetch_repo(full_name: str, access_token: str) -> dict:
     return response.json()
 
 
+async def fetch_user_repo_languages(
+    username: str, access_token: str, per_page: int = 100
+) -> list[str]:
+    """Primary languages of the user's own non-fork public repos, ranked by
+    frequency — a lightweight, non-AI stand-in for "skills inferred from
+    GitHub activity" (Feature 2)."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{API_URL}/users/{username}/repos",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github+json",
+            },
+            params={"per_page": per_page, "sort": "pushed", "type": "owner"},
+        )
+        response.raise_for_status()
+
+    counts: dict[str, int] = {}
+    for repo in response.json():
+        if repo.get("fork"):
+            continue
+        language = repo.get("language")
+        if language:
+            counts[language] = counts.get(language, 0) + 1
+
+    return [lang for lang, _ in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)]
+
+
 async def fetch_open_issues(full_name: str, access_token: str, per_page: int = 30) -> list[dict]:
     async with httpx.AsyncClient() as client:
         response = await client.get(

@@ -61,6 +61,25 @@ export async function apiPostJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export async function apiPatchJson<T>(path: string, payload: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new ApiError(
+      body?.detail || `PATCH ${path} failed with ${res.status}`,
+      res.status,
+    )
+  }
+  return res.json() as Promise<T>
+}
+
+export type BlastRadiusBucket = 'start_here' | 'here_be_dragons'
+
 export interface FunctionMetric {
   id: string
   name: string
@@ -70,6 +89,10 @@ export interface FunctionMetric {
   fan_in: number
   name_is_ambiguous: boolean
   cyclomatic_complexity: number
+  has_test_coverage: boolean
+  churn_intensity: number
+  blast_radius_score: number
+  bucket: BlastRadiusBucket
 }
 
 export interface RepoAnalysis {
@@ -79,4 +102,20 @@ export interface RepoAnalysis {
   file_count: number
   function_count: number
   functions: FunctionMetric[]
+}
+
+export interface RankedIssue {
+  number: number
+  title: string
+  url: string
+  labels: string[]
+  similarity: number
+  overlapping_terms: string[]
+}
+
+export interface RankedIssuesResponse {
+  repo: string
+  user_skills: string[]
+  inferred_skills: string[]
+  issues: RankedIssue[]
 }

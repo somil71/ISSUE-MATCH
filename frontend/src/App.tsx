@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, type HealthStatus } from './lib/api'
 import { AuthPanel } from './components/AuthPanel'
-import { RepoAnalyzer } from './components/RepoAnalyzer'
+import { RepoWorkspace } from './components/RepoWorkspace'
+import { SkillProfile } from './components/SkillProfile'
 import { useSession } from './lib/session'
 
 function StatusDot({ ok }: { ok: boolean | undefined }) {
@@ -18,7 +19,7 @@ function App() {
   const { data: user } = useSession()
 
   return (
-    <div className="mx-auto min-h-svh max-w-3xl px-6 py-16">
+    <div className="mx-auto min-h-svh max-w-5xl px-6 py-16">
       <header className="mb-10 flex items-start justify-between gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-text-bright">
@@ -67,7 +68,12 @@ function App() {
         </div>
       </section>
 
-      {user && <RepoAnalyzer />}
+      {user && (
+        <>
+          <SkillProfile user={user} />
+          <RepoWorkspace />
+        </>
+      )}
     </div>
   )
 }
