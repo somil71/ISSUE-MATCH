@@ -98,6 +98,12 @@ export interface FunctionMetric {
   bucket: BlastRadiusBucket
 }
 
+export interface SkillGap {
+  required: string[]
+  have: string[]
+  gap: string[]
+}
+
 export interface RepoAnalysis {
   repo: string
   commit_sha: string
@@ -105,6 +111,9 @@ export interface RepoAnalysis {
   file_count: number
   function_count: number
   functions: FunctionMetric[]
+  skill_gap: SkillGap
+  avg_blast_radius_score: number
+  readiness_score: number
 }
 
 export interface RankedIssue {
@@ -114,6 +123,7 @@ export interface RankedIssue {
   labels: string[]
   similarity: number
   overlapping_terms: string[]
+  explanation: string
 }
 
 export interface RankedIssuesResponse {

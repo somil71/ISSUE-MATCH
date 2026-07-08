@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # happens at request time (matches the product's zero-external-AI-API claim).
 ENV HF_HOME=/opt/hf-cache
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+RUN python -m spacy download en_core_web_sm
 
 COPY . .
 

@@ -4,11 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.routes.auth import get_current_user
 from app.core.security import decrypt_token
 from app.db.models import User
-from app.services import call_graph, churn, github_client, repo_fetcher, test_proximity
+from app.services import call_graph, churn, github_client, repo_fetcher, skill_gap, test_proximity
 from app.services.blast_radius import compute_blast_radius
 from app.services.complexity import cyclomatic_complexity
 from app.services.parsing.engine import parse_file
 from app.services.parsing.languages import LANGUAGES
+from app.services.readiness import compute_readiness
 
 router = APIRouter()
 
@@ -78,6 +79,28 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
     ]
     functions.sort(key=lambda f: f["blast_radius_score"], reverse=True)
 
+    try:
+        inferred_languages = await github_client.fetch_user_repo_languages(
+            user.username, access_token
+        )
+    except httpx.HTTPStatusError:
+        inferred_languages = []
+
+    required_skills = skill_gap.extract_required_skills(repo_path)
+    gap = skill_gap.compute_gap(required_skills, [*user.skills, *inferred_languages])
+
+    skill_overlap_ratio = (
+        len(gap["have"]) / len(gap["required"]) if gap["required"] else 1.0
+    )
+    avg_blast_radius_score = (
+        sum(f["blast_radius_score"] for f in functions) / len(functions) if functions else 0.0
+    )
+    readiness_score = compute_readiness(
+        skill_overlap_ratio=skill_overlap_ratio,
+        avg_blast_radius_score=avg_blast_radius_score,
+        gap_size=len(gap["gap"]),
+    )
+
     return {
         "repo": full_name,
         "commit_sha": commit_sha,
@@ -85,4 +108,7 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
         "file_count": len(parsed_files),
         "function_count": len(functions),
         "functions": functions,
+        "skill_gap": gap,
+        "avg_blast_radius_score": round(avg_blast_radius_score, 4),
+        "readiness_score": round(readiness_score, 4),
     }

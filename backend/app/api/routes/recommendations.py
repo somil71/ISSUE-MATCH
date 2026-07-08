@@ -5,6 +5,7 @@ from app.api.routes.auth import get_current_user
 from app.core.security import decrypt_token
 from app.db.models import User
 from app.services import github_client
+from app.services.explanation import explain_issue
 from app.services.recommendation import rank_issues
 
 router = APIRouter()
@@ -39,6 +40,7 @@ async def ranked_issues(owner: str, name: str, user: User = Depends(get_current_
             "labels": [label["name"] for label in issues[m.issue_index].get("labels", [])],
             "similarity": round(m.similarity, 4),
             "overlapping_terms": m.overlapping_terms,
+            "explanation": explain_issue(issues[m.issue_index]["title"]),
         }
         for m in matches
     ]

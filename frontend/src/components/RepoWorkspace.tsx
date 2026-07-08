@@ -9,6 +9,91 @@ import {
   type RepoAnalysis,
 } from '../lib/api'
 
+function SkillChips({
+  skills,
+  tone,
+}: {
+  skills: string[]
+  tone: 'neutral' | 'safe' | 'danger'
+}) {
+  const toneClass =
+    tone === 'safe'
+      ? 'bg-safe-bg text-safe'
+      : tone === 'danger'
+        ? 'bg-danger-bg text-danger'
+        : 'bg-surface-2 text-text-bright'
+  if (skills.length === 0) {
+    return <span className="text-xs text-text-dim">none</span>
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {skills.map((s) => (
+        <span
+          key={s}
+          className={`metric rounded-full px-2 py-0.5 text-xs ${toneClass}`}
+        >
+          {s}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function ReadinessCard({ analysis }: { analysis: RepoAnalysis }) {
+  const { skill_gap, readiness_score, avg_blast_radius_score } = analysis
+  const skillOverlapRatio =
+    skill_gap.required.length > 0
+      ? skill_gap.have.length / skill_gap.required.length
+      : 1
+  const gapPenalty = 1 / (1 + skill_gap.gap.length)
+
+  return (
+    <section className="mt-6 rounded-lg border border-border bg-surface-1 p-6">
+      <h2 className="text-sm font-medium text-text-bright">
+        Your readiness for this repo
+      </h2>
+      <p className="mt-1 text-sm text-text-dim">
+        Repo-level, not per-issue — real issue text rarely names the exact
+        files it touches, so this compares your skills against the repo's
+        actual dependency manifests instead of guessing.
+      </p>
+
+      <div className="mt-4 flex flex-col gap-2">
+        <div>
+          <span className="text-xs text-text-dim">Required (from manifests)</span>
+          <div className="mt-1">
+            <SkillChips skills={skill_gap.required} tone="neutral" />
+          </div>
+        </div>
+        <div>
+          <span className="text-xs text-text-dim">You have</span>
+          <div className="mt-1">
+            <SkillChips skills={skill_gap.have} tone="safe" />
+          </div>
+        </div>
+        <div>
+          <span className="text-xs text-text-dim">Gap</span>
+          <div className="mt-1">
+            <SkillChips skills={skill_gap.gap} tone="danger" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-border pt-4">
+        <div className="metric text-3xl font-semibold text-text-bright">
+          {Math.round(readiness_score * 100)}
+          <span className="text-base text-text-dim">/100</span>
+        </div>
+        <p className="metric mt-1 text-xs text-text-dim">
+          0.40 × {skillOverlapRatio.toFixed(2)} (skill overlap) + 0.35 ×{' '}
+          {(1 - avg_blast_radius_score).toFixed(2)} (1 − avg blast radius) +
+          0.25 × {gapPenalty.toFixed(2)} (gap penalty)
+        </p>
+      </div>
+    </section>
+  )
+}
+
 function parseOwnerRepo(input: string): [string, string] | null {
   let cleaned = input.trim()
   cleaned = cleaned.replace(/^https?:\/\//, '').replace(/^github\.com\//, '')
@@ -210,6 +295,8 @@ export function RepoWorkspace() {
         )}
       </section>
 
+      {analysis.isSuccess && <ReadinessCard analysis={analysis.data} />}
+
       <section className="mt-6 rounded-lg border border-border bg-surface-1 p-6">
         <h2 className="text-sm font-medium text-text-bright">
           Recommended issues
@@ -266,8 +353,9 @@ export function RepoWorkspace() {
                       similarity {issue.similarity.toFixed(3)}
                     </span>
                   </div>
+                  <p className="mt-2 text-xs text-text-dim">{issue.explanation}</p>
                   {issue.overlapping_terms.length > 0 && (
-                    <p className="mt-2 text-xs text-text-dim">
+                    <p className="mt-1 text-xs text-text-dim">
                       matched on:{' '}
                       <span className="metric text-text-bright">
                         {issue.overlapping_terms.join(', ')}
