@@ -54,3 +54,29 @@ export function GaugeIcon({ className = 'h-4 w-4' }: IconProps) {
     </svg>
   )
 }
+
+export function RouteIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M5 8.2C5 13 8 15 12 15.8M13.6 17C16 16 18 13 19 11.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <circle cx="5" cy="6" r="2.2" fill="currentColor" />
+      <circle cx="12" cy="18" r="2.2" fill="currentColor" opacity="0.85" />
+      <circle cx="19" cy="9" r="2.2" fill="currentColor" opacity="0.6" />
+    </svg>
+  )
+}
+
+export function LandmarkIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M12 3v18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M12 4.5 19 7.5 12 10.5Z" fill="currentColor" opacity="0.8" />
+      <path d="M7 21h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}

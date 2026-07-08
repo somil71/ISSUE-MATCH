@@ -8,7 +8,7 @@ import {
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
-import { GaugeIcon, SparklesIcon, TargetIcon } from './Icons'
+import { GaugeIcon, LandmarkIcon, RouteIcon, SparklesIcon, TargetIcon } from './Icons'
 import { SectionCard } from './SectionCard'
 
 function parseOwnerRepo(input: string): [string, string] | null {
@@ -18,6 +18,16 @@ function parseOwnerRepo(input: string): [string, string] | null {
   const parts = cleaned.split('/').filter(Boolean)
   if (parts.length < 2) return null
   return [parts[0], parts[1]]
+}
+
+/** Lets a user shift the Start Here / Here Be Dragons boundary themselves
+ * instead of accepting one fixed global cutoff — the formula and its
+ * weights never change, only where the line falls on the same score. */
+function computeBucket(
+  score: number,
+  threshold: number,
+): 'start_here' | 'here_be_dragons' {
+  return score < threshold ? 'start_here' : 'here_be_dragons'
 }
 
 function BucketBadge({ bucket }: { bucket: 'start_here' | 'here_be_dragons' }) {
@@ -88,8 +98,16 @@ function SignalBars({ fn }: { fn: FunctionMetric }) {
   )
 }
 
-function BucketSummary({ functions }: { functions: FunctionMetric[] }) {
-  const startHere = functions.filter((f) => f.bucket === 'start_here').length
+function BucketSummary({
+  functions,
+  threshold,
+}: {
+  functions: FunctionMetric[]
+  threshold: number
+}) {
+  const startHere = functions.filter(
+    (f) => computeBucket(f.blast_radius_score, threshold) === 'start_here',
+  ).length
   const dragons = functions.length - startHere
   return (
     <p className="mt-2 text-sm text-text-dim">
@@ -233,10 +251,85 @@ function ReadinessCard({ analysis }: { analysis: RepoAnalysis }) {
   )
 }
 
+function FirstMergePath({
+  functions,
+  threshold,
+}: {
+  functions: FunctionMetric[]
+  threshold: number
+}) {
+  const path = useMemo(() => {
+    return functions
+      .filter((fn) => computeBucket(fn.blast_radius_score, threshold) === 'start_here')
+      .sort((a, b) => a.blast_radius_score - b.blast_radius_score)
+      .slice(0, 3)
+  }, [functions, threshold])
+
+  if (path.length === 0) {
+    return (
+      <p className="text-sm text-text-dim">
+        No functions fall under "Start Here" at this risk tolerance — try
+        loosening the slider above the table.
+      </p>
+    )
+  }
+
+  return (
+    <ol className="flex flex-col gap-3">
+      {path.map((fn, i) => (
+        <li
+          key={fn.id}
+          className="flex gap-3 rounded-lg border border-border p-3"
+        >
+          <span className="metric flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-safe-bg text-xs font-semibold text-safe">
+            {i + 1}
+          </span>
+          <div>
+            <p className="metric text-sm text-text-bright">
+              {fn.name}{' '}
+              <span className="text-text-dim">
+                — {fn.file}:{fn.start_line}
+              </span>
+            </p>
+            <p className="mt-1 text-xs text-text-dim">{fn.summary}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function CodebaseLandmarks({ functions }: { functions: FunctionMetric[] }) {
+  const landmarks = useMemo(
+    () => [...functions].sort((a, b) => b.fan_in - a.fan_in).slice(0, 5),
+    [functions],
+  )
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {landmarks.map((fn) => (
+        <li
+          key={fn.id}
+          className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
+        >
+          <div>
+            <span className="metric text-sm text-text-bright">{fn.name}</span>
+            <span className="metric ml-2 text-xs text-text-dim">{fn.file}</span>
+          </div>
+          <span className="metric shrink-0 text-xs text-text-dim">
+            {fn.fan_in} callers
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function RepoWorkspace() {
   const [repoInput, setRepoInput] = useState('')
   const [search, setSearch] = useState('')
   const [bucketFilter, setBucketFilter] = useState<BucketFilter>('all')
+  const [bucketThreshold, setBucketThreshold] = useState(0.5)
   const tableScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -268,7 +361,12 @@ export function RepoWorkspace() {
     const functions = analysis.data?.functions ?? []
     const term = search.trim().toLowerCase()
     return functions.filter((fn) => {
-      if (bucketFilter !== 'all' && fn.bucket !== bucketFilter) return false
+      if (
+        bucketFilter !== 'all' &&
+        computeBucket(fn.blast_radius_score, bucketThreshold) !== bucketFilter
+      ) {
+        return false
+      }
       if (
         term &&
         !fn.name.toLowerCase().includes(term) &&
@@ -278,7 +376,7 @@ export function RepoWorkspace() {
       }
       return true
     })
-  }, [analysis.data, search, bucketFilter])
+  }, [analysis.data, search, bucketFilter, bucketThreshold])
 
   return (
     <>
@@ -337,7 +435,33 @@ export function RepoWorkspace() {
               {analysis.data.file_count} files, {analysis.data.function_count}{' '}
               functions
             </p>
-            <BucketSummary functions={analysis.data.functions} />
+            <BucketSummary
+              functions={analysis.data.functions}
+              threshold={bucketThreshold}
+            />
+
+            <div className="mt-3 flex items-center gap-3">
+              <span className="shrink-0 text-xs text-text-dim">
+                Risk tolerance
+              </span>
+              <input
+                type="range"
+                min={0.15}
+                max={0.85}
+                step={0.05}
+                value={bucketThreshold}
+                onChange={(e) => setBucketThreshold(Number(e.target.value))}
+                className="h-1.5 w-40 accent-accent"
+              />
+              <span className="metric shrink-0 text-xs text-text-dim">
+                {bucketThreshold < 0.35
+                  ? 'Cautious'
+                  : bucketThreshold > 0.65
+                    ? 'Adventurous'
+                    : 'Balanced'}{' '}
+                ({bucketThreshold.toFixed(2)})
+              </span>
+            </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <input
@@ -414,7 +538,9 @@ export function RepoWorkspace() {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <BucketBadge bucket={fn.bucket} />
+                        <BucketBadge
+                          bucket={computeBucket(fn.blast_radius_score, bucketThreshold)}
+                        />
                       </td>
                       <td className="max-w-xs px-3 py-2 text-xs text-text-dim">
                         {fn.summary}
@@ -434,6 +560,31 @@ export function RepoWorkspace() {
           </div>
         )}
       </SectionCard>
+
+      {analysis.isSuccess && (
+        <SectionCard
+          icon={<RouteIcon />}
+          title="Your first merge path"
+          description="The 3 safest Start Here functions in this repo, ordered easiest to hardest — a suggested on-ramp, not a mandate. Respects the risk tolerance slider above."
+          accent="cyan"
+        >
+          <FirstMergePath
+            functions={analysis.data.functions}
+            threshold={bucketThreshold}
+          />
+        </SectionCard>
+      )}
+
+      {analysis.isSuccess && (
+        <SectionCard
+          icon={<LandmarkIcon />}
+          title="Codebase landmarks"
+          description="The most depended-on functions in this repo, by fan-in — touch these last, and only with tests running."
+          accent="accent"
+        >
+          <CodebaseLandmarks functions={analysis.data.functions} />
+        </SectionCard>
+      )}
 
       {analysis.isSuccess && <ReadinessCard analysis={analysis.data} />}
 
