@@ -91,6 +91,9 @@ export interface FunctionMetric {
   cyclomatic_complexity: number
   has_test_coverage: boolean
   churn_intensity: number
+  normalized_fan_in: number
+  normalized_complexity: number
+  normalized_churn: number
   blast_radius_score: number
   bucket: BlastRadiusBucket
 }

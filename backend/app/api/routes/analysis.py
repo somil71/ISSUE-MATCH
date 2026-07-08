@@ -68,6 +68,9 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
             "cyclomatic_complexity": complexity_by_id[fid],
             "has_test_coverage": blast_radius[fid].has_test_coverage,
             "churn_intensity": round(blast_radius[fid].churn_intensity, 4),
+            "normalized_fan_in": round(blast_radius[fid].normalized_fan_in, 4),
+            "normalized_complexity": round(blast_radius[fid].normalized_complexity, 4),
+            "normalized_churn": round(blast_radius[fid].normalized_churn, 4),
             "blast_radius_score": round(blast_radius[fid].score, 4),
             "bucket": blast_radius[fid].bucket,
         }

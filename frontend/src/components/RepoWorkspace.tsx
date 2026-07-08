@@ -4,6 +4,7 @@ import {
   ApiError,
   apiGet,
   apiPostJson,
+  type FunctionMetric,
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
@@ -20,15 +21,71 @@ function parseOwnerRepo(input: string): [string, string] | null {
 function BucketBadge({ bucket }: { bucket: 'start_here' | 'here_be_dragons' }) {
   if (bucket === 'start_here') {
     return (
-      <span className="rounded-full bg-safe-bg px-2 py-0.5 text-xs font-medium text-safe">
+      <span className="whitespace-nowrap rounded-full bg-safe-bg px-2 py-0.5 text-xs font-medium text-safe">
         Start Here
       </span>
     )
   }
   return (
-    <span className="rounded-full bg-danger-bg px-2 py-0.5 text-xs font-medium text-danger">
+    <span className="whitespace-nowrap rounded-full bg-danger-bg px-2 py-0.5 text-xs font-medium text-danger">
       Here Be Dragons
     </span>
+  )
+}
+
+function SignalBar({
+  label,
+  value,
+  raw,
+}: {
+  label: string
+  value: number
+  raw: string | number
+}) {
+  const pct = Math.round(Math.max(0, Math.min(1, value)) * 100)
+  return (
+    <div className="flex items-center gap-1.5" title={`${label}: ${pct}% of this repo's range`}>
+      <span className="w-9 shrink-0 text-[10px] text-text-dim">{label}</span>
+      <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-surface-2">
+        <div
+          className="h-full rounded-full bg-caution"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="metric w-8 shrink-0 text-right text-[11px] text-text-dim">
+        {raw}
+      </span>
+    </div>
+  )
+}
+
+function SignalBars({ fn }: { fn: FunctionMetric }) {
+  return (
+    <div className="flex flex-col gap-1 py-0.5">
+      <SignalBar label="fan-in" value={fn.normalized_fan_in} raw={fn.fan_in} />
+      <SignalBar
+        label="complex"
+        value={fn.normalized_complexity}
+        raw={fn.cyclomatic_complexity}
+      />
+      <SignalBar
+        label="churn"
+        value={fn.normalized_churn}
+        raw={fn.churn_intensity.toFixed(2)}
+      />
+    </div>
+  )
+}
+
+function BucketSummary({ functions }: { functions: FunctionMetric[] }) {
+  const startHere = functions.filter((f) => f.bucket === 'start_here').length
+  const dragons = functions.length - startHere
+  return (
+    <p className="mt-2 text-sm text-text-dim">
+      <span className="text-safe">{startHere} Start Here</span>
+      {' · '}
+      <span className="text-danger">{dragons} Here Be Dragons</span>
+    </p>
   )
 }
 
@@ -105,41 +162,34 @@ export function RepoWorkspace() {
               {analysis.data.file_count} files, {analysis.data.function_count}{' '}
               functions
             </p>
-            <div className="mt-3 max-h-96 overflow-y-auto rounded-md border border-border">
+            <BucketSummary functions={analysis.data.functions} />
+            <div className="mt-3 max-h-[32rem] overflow-y-auto rounded-md border border-border">
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-surface-2 text-text-dim">
                   <tr>
                     <th className="px-3 py-2 font-medium">Function</th>
                     <th className="px-3 py-2 font-medium">File</th>
-                    <th className="px-3 py-2 font-medium text-right">
-                      Fan-in
-                    </th>
-                    <th className="px-3 py-2 font-medium text-right">
-                      Complexity
-                    </th>
+                    <th className="px-3 py-2 font-medium">Signals</th>
                     <th className="px-3 py-2 font-medium text-right">Test</th>
                     <th className="px-3 py-2 font-medium">Bucket</th>
                   </tr>
                 </thead>
                 <tbody>
                   {analysis.data.functions.map((fn) => (
-                    <tr key={fn.id} className="border-t border-border">
+                    <tr key={fn.id} className="border-t border-border align-top">
                       <td className="metric px-3 py-2 text-text-bright">
                         {fn.name}
                         {fn.name_is_ambiguous && (
-                          <span className="ml-2 text-xs text-caution">
-                            ambiguous name
+                          <span className="ml-1 text-xs text-caution">
+                            (ambiguous name)
                           </span>
                         )}
                       </td>
                       <td className="metric px-3 py-2 text-text-dim">
                         {fn.file}:{fn.start_line}
                       </td>
-                      <td className="metric px-3 py-2 text-right">
-                        {fn.fan_in}
-                      </td>
-                      <td className="metric px-3 py-2 text-right">
-                        {fn.cyclomatic_complexity}
+                      <td className="px-3 py-2">
+                        <SignalBars fn={fn} />
                       </td>
                       <td className="metric px-3 py-2 text-right">
                         {fn.has_test_coverage ? (
@@ -226,10 +276,13 @@ export function RepoWorkspace() {
                   )}
                 </li>
               ))}
-              {issues.data.issues.length === 0 && (
-                <p className="text-sm text-text-dim">No open issues found.</p>
-              )}
             </ul>
+            {issues.data.issues.length === 0 && (
+              <p className="text-sm text-text-dim">
+                This repo has no open issues right now — try another repo to
+                see ranked recommendations.
+              </p>
+            )}
           </div>
         )}
       </section>
