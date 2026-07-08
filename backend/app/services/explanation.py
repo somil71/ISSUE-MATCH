@@ -39,6 +39,25 @@ _GLOSSARY = {
 
 _ARTICLE_STARTERS = ("a ", "an ", "the ", "your ", "my ", "our ")
 
+# Real GitHub issues overwhelmingly use conventional-commit or "Feature
+# Request:"/"Bug:" prefixes rather than a bare imperative sentence -- without
+# stripping these first, the first-word verb check almost never fires and
+# every title falls through to the low-value fallback. "bug"/"fix" prefixes
+# also pick the "problem" framing below instead of the neutral one.
+_PREFIX_PATTERN = re.compile(
+    r"^(feat|feature request|feature|fix|bug report|bug|chore|docs|"
+    r"refactor|test|perf|style|enhancement)(\([^)]*\))?\s*:\s*",
+    re.IGNORECASE,
+)
+_PROBLEM_PREFIXES = frozenset({"fix", "bug", "bug report"})
+
+
+def _strip_prefix(title: str) -> tuple[str, str | None]:
+    match = _PREFIX_PATTERN.match(title)
+    if not match:
+        return title, None
+    return title[match.end() :].strip(), match.group(1).lower()
+
 
 @lru_cache
 def _model():
@@ -74,7 +93,11 @@ def explain_issue(title: str) -> str:
     mistags them on short title-case text; bug-report titles with no clear
     verb fall back to describing the whole title rather than fabricating a
     verb-object structure that isn't there."""
-    doc = _model()(title.strip())
+    cleaned, prefix_kind = _strip_prefix(title.strip())
+    is_problem = prefix_kind in _PROBLEM_PREFIXES
+    fallback_verb = "describes a problem involving" if is_problem else "is about"
+
+    doc = _model()(cleaned)
     if len(doc) == 0:
         return "No description available."
 
@@ -93,4 +116,4 @@ def explain_issue(title: str) -> str:
             return f"This issue is about {_gerund(root.lemma_)} {_with_article(_simplify_phrase(component))}."
 
     subject_span = doc[root.left_edge.i : root.right_edge.i + 1].text
-    return f"This issue describes a problem involving {_with_article(_simplify_phrase(subject_span))}."
+    return f"This issue {fallback_verb} {_with_article(_simplify_phrase(subject_span))}."
