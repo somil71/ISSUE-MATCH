@@ -8,6 +8,8 @@ from app.services import (
     analysis_cache,
     call_graph,
     churn,
+    code_owners,
+    dependency_graph,
     github_client,
     repo_fetcher,
     skill_gap,
@@ -23,6 +25,7 @@ from app.services.readiness import compute_readiness
 router = APIRouter()
 
 _ALL_EXTENSIONS = {ext for spec in LANGUAGES.values() for ext in spec.extensions}
+_MAX_TRANSITIVE_HOPS = 6
 
 
 @router.post("/repos/{owner}/{name}/analyze")
@@ -64,7 +67,20 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
     except churn.ChurnError:
         churn_by_file = {}
 
+    try:
+        owners_by_file = code_owners.compute_file_owners(repo_path)
+    except code_owners.CodeOwnersError:
+        owners_by_file = {}
+
     blast_radius = compute_blast_radius(fan_in_metrics, complexity_by_id, tested_names, churn_by_file)
+
+    call_graph_data = dependency_graph.build_call_graph(parsed_files)
+    transitive_fan_in_by_id = {
+        fid: len(
+            dependency_graph.transitive_dependents(fid, call_graph_data, max_hops=_MAX_TRANSITIVE_HOPS)
+        )
+        for fid in fan_in_metrics
+    }
 
     functions = [
         {
@@ -74,6 +90,7 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
             "start_line": fm.function.start_line,
             "end_line": fm.function.end_line,
             "fan_in": fm.fan_in,
+            "transitive_fan_in": transitive_fan_in_by_id[fid],
             "name_is_ambiguous": fm.name_is_ambiguous,
             "cyclomatic_complexity": complexity_by_id[fid],
             "has_test_coverage": blast_radius[fid].has_test_coverage,
@@ -89,7 +106,15 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
     ]
     functions.sort(key=lambda f: f["blast_radius_score"], reverse=True)
 
-    await analysis_cache.store_analysis(full_name, commit_sha, functions)
+    owners_payload = {
+        file: {"author": owner.author, "commit_count": owner.commit_count}
+        for file, owner in owners_by_file.items()
+    }
+    await analysis_cache.store_analysis(full_name, commit_sha, functions, owners_payload)
+    graph_edges = {
+        caller_id: sorted(callee_ids) for caller_id, callee_ids in call_graph_data.edges.items()
+    }
+    await analysis_cache.store_graph(full_name, commit_sha, functions, graph_edges)
 
     try:
         inferred_languages = await github_client.fetch_user_repo_languages(

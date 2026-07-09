@@ -13,21 +13,37 @@ def test_extract_backtick_references_ignores_unquoted_text() -> None:
 
 def test_match_code_references_resolves_function_name() -> None:
     cached_functions = {
-        "parseConfig": [{"file": "lib/config.ts", "bucket": "here_be_dragons", "score": 0.7}],
+        "parseConfig": [
+            {
+                "file": "lib/config.ts",
+                "bucket": "here_be_dragons",
+                "score": 0.7,
+                "summary": "3 callers, no branches, no nearby tests.",
+            }
+        ],
     }
     matched = match_code_references(["parseConfig"], cached_functions, [])
     assert matched == [
-        {"name": "parseConfig", "file": "lib/config.ts", "bucket": "here_be_dragons"}
+        {
+            "name": "parseConfig",
+            "file": "lib/config.ts",
+            "bucket": "here_be_dragons",
+            "summary": "3 callers, no branches, no nearby tests.",
+        }
     ]
 
 
 def test_match_code_references_resolves_file_path_to_worst_bucket() -> None:
     cached_functions = {
-        "a": [{"file": "lib/config.ts", "bucket": "start_here", "score": 0.1}],
-        "b": [{"file": "lib/config.ts", "bucket": "here_be_dragons", "score": 0.8}],
+        "a": [{"file": "lib/config.ts", "bucket": "start_here", "score": 0.1, "summary": "x"}],
+        "b": [
+            {"file": "lib/config.ts", "bucket": "here_be_dragons", "score": 0.8, "summary": "y"}
+        ],
     }
     matched = match_code_references(["lib/config.ts"], cached_functions, ["lib/config.ts"])
-    assert matched == [{"name": None, "file": "lib/config.ts", "bucket": "here_be_dragons"}]
+    assert matched == [
+        {"name": None, "file": "lib/config.ts", "bucket": "here_be_dragons", "summary": None}
+    ]
 
 
 def test_match_code_references_ignores_unmatched_references() -> None:

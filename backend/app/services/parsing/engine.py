@@ -25,7 +25,11 @@ class ParsedFile:
     source: bytes
     tree: Tree
     functions: list[ParsedFunction]
-    call_names: list[str]
+    call_edges: list[tuple[str | None, str]]
+
+    @property
+    def call_names(self) -> list[str]:
+        return [callee for _, callee in self.call_edges]
 
 
 def parse_file(path: Path, relative_path: str) -> ParsedFile | None:
@@ -51,7 +55,8 @@ def parse_file(path: Path, relative_path: str) -> ParsedFile | None:
         )
         for name, node in language.iter_functions(root, source)
     ]
-    call_names = list(language.iter_calls(root, source))
+    function_spans = {(fn.node.start_byte, fn.node.end_byte): fn.id for fn in functions}
+    call_edges = list(language.iter_calls(root, source, function_spans))
 
     return ParsedFile(
         relative_path=relative_path,
@@ -59,5 +64,5 @@ def parse_file(path: Path, relative_path: str) -> ParsedFile | None:
         source=source,
         tree=tree,
         functions=functions,
-        call_names=call_names,
+        call_edges=call_edges,
     )

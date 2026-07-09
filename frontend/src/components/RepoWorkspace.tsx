@@ -9,6 +9,7 @@ import {
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
+import { BlastRadiusMap } from './BlastRadiusMap'
 import { GaugeIcon, LandmarkIcon, RouteIcon, SparklesIcon, TargetIcon } from './Icons'
 import { SectionCard } from './SectionCard'
 
@@ -386,11 +387,48 @@ function LabelAccuracyScoreboard({ accuracy }: { accuracy: LabelAccuracy }) {
   )
 }
 
+function DraftCommentPanel({ draft }: { draft: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(draft)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="text-xs font-medium text-accent-bright hover:underline"
+      >
+        {expanded ? 'Hide draft comment' : "Draft my \"I'd like to work on this\" comment"}
+      </button>
+      {expanded && (
+        <div className="mt-1.5 rounded-md border border-border bg-surface-0 p-2.5">
+          <p className="whitespace-pre-wrap text-xs text-text-dim">{draft}</p>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="mt-2 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-text-dim transition-colors hover:bg-accent-bg hover:text-accent-bright"
+          >
+            {copied ? 'Copied!' : 'Copy to clipboard'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function RepoWorkspace() {
   const [repoInput, setRepoInput] = useState('')
   const [search, setSearch] = useState('')
   const [bucketFilter, setBucketFilter] = useState<BucketFilter>('all')
   const [bucketThreshold, setBucketThreshold] = useState(0.5)
+  const [activeRepo, setActiveRepo] = useState<[string, string] | null>(null)
+  const [mapFunctionId, setMapFunctionId] = useState<string | null>(null)
   const tableScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -411,6 +449,7 @@ export function RepoWorkspace() {
     event.preventDefault()
     const parsed = parseOwnerRepo(repoInput)
     if (!parsed) return
+    setActiveRepo(parsed)
     // Analyze first and await it so the backend's per-repo cache is warm
     // before /issues runs — that cache is what lets an issue's text be
     // cross-referenced against real function-level blast radius data.
@@ -578,7 +617,14 @@ export function RepoWorkspace() {
                       className="border-t border-border align-top transition-colors hover:bg-surface-2/50"
                     >
                       <td className="metric px-3 py-2 text-text-bright">
-                        {fn.name}
+                        <button
+                          type="button"
+                          onClick={() => setMapFunctionId(fn.id)}
+                          className="text-left hover:text-accent-bright hover:underline"
+                          title={`${fn.transitive_fan_in} functions transitively depend on this — click to trace the real call graph outward`}
+                        >
+                          {fn.name}
+                        </button>
                         {fn.name_is_ambiguous && (
                           <span className="ml-1 text-xs text-caution">
                             (ambiguous name)
@@ -760,6 +806,7 @@ export function RepoWorkspace() {
                       ))}
                     </div>
                   )}
+                  <DraftCommentPanel draft={issue.draft_comment} />
                 </li>
               ))}
             </ul>
@@ -778,6 +825,15 @@ export function RepoWorkspace() {
           </div>
         )}
       </SectionCard>
+
+      {mapFunctionId && activeRepo && (
+        <BlastRadiusMap
+          owner={activeRepo[0]}
+          name={activeRepo[1]}
+          functionId={mapFunctionId}
+          onClose={() => setMapFunctionId(null)}
+        />
+      )}
     </>
   )
 }

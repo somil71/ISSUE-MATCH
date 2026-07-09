@@ -87,6 +87,7 @@ export interface FunctionMetric {
   start_line: number
   end_line: number
   fan_in: number
+  transitive_fan_in: number
   name_is_ambiguous: boolean
   cyclomatic_complexity: number
   has_test_coverage: boolean
@@ -126,6 +127,7 @@ export interface CodeReference {
   name: string | null
   file: string
   bucket: BlastRadiusBucket | null
+  summary: string | null
 }
 
 export interface RankedIssue {
@@ -138,6 +140,7 @@ export interface RankedIssue {
   explanation: string
   beginner_friendly_label: boolean
   code_references: CodeReference[]
+  draft_comment: string
 }
 
 export interface LabelDisagreement {
@@ -167,4 +170,27 @@ export interface NetworkTrustSummary {
   total_calls: number
   hosts: { host: string; count: number }[]
   since: string | null
+}
+
+export interface BlastMapNode {
+  id: string
+  name: string
+  file: string
+  start_line: number
+  bucket: BlastRadiusBucket
+  score: number
+  hops: number
+}
+
+export interface BlastMapEdge {
+  source: string
+  target: string
+}
+
+export interface BlastMapResponse {
+  function_id: string
+  max_hops: number
+  total_transitive_dependents: number
+  nodes: BlastMapNode[]
+  edges: BlastMapEdge[]
 }

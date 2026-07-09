@@ -30,7 +30,14 @@ def match_code_references(
                 if key in seen:
                     continue
                 seen.add(key)
-                matched.append({"name": ref, "file": entry["file"], "bucket": entry["bucket"]})
+                matched.append(
+                    {
+                        "name": ref,
+                        "file": entry["file"],
+                        "bucket": entry["bucket"],
+                        "summary": entry.get("summary"),
+                    }
+                )
             continue
 
         for file_path in cached_files:
@@ -40,7 +47,12 @@ def match_code_references(
                     continue
                 seen.add(key)
                 matched.append(
-                    {"name": None, "file": file_path, "bucket": _worst_bucket_in_file(file_path, cached_functions)}
+                    {
+                        "name": None,
+                        "file": file_path,
+                        "bucket": _worst_bucket_in_file(file_path, cached_functions),
+                        "summary": None,
+                    }
                 )
 
     return matched

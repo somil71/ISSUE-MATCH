@@ -42,18 +42,29 @@ def _iter_python_functions(root: Node, source: bytes) -> Iterator[tuple[str, Nod
     yield from walk(root)
 
 
-def _iter_python_calls(root: Node, source: bytes) -> Iterator[str]:
-    def walk(node: Node) -> Iterator[str]:
+def _iter_python_calls(
+    root: Node, source: bytes, function_spans: dict[tuple[int, int], str]
+) -> Iterator[tuple[str | None, str]]:
+    """Yields (enclosing_function_id, callee_name) edges.
+
+    `function_spans` maps each known function's exact byte range to its id,
+    letting this walk track which function definition currently encloses each
+    call site (None means module-level/no enclosing function) without a
+    second independent scope-detection pass.
+    """
+
+    def walk(node: Node, enclosing: str | None) -> Iterator[tuple[str | None, str]]:
+        scope = function_spans.get((node.start_byte, node.end_byte), enclosing)
         if node.type == "call":
             fn = node.child_by_field_name("function")
             if fn is not None:
                 name = _extract_reference_name(fn, source, "attribute")
                 if name:
-                    yield name
+                    yield enclosing, name
         for child in node.children:
-            yield from walk(child)
+            yield from walk(child, scope)
 
-    yield from walk(root)
+    yield from walk(root, None)
 
 
 _PYTHON_DECISION_TYPES = frozenset(
@@ -103,32 +114,41 @@ def _iter_js_functions(root: Node, source: bytes) -> Iterator[tuple[str, Node]]:
 _JSX_ELEMENT_TYPES = frozenset({"jsx_opening_element", "jsx_self_closing_element"})
 
 
-def _iter_js_calls(root: Node, source: bytes) -> Iterator[str]:
-    """Yields names of both function calls and JSX component usages.
+def _iter_js_calls(
+    root: Node, source: bytes, function_spans: dict[tuple[int, int], str]
+) -> Iterator[tuple[str | None, str]]:
+    """Yields (enclosing_function_id, callee_name) edges for calls and JSX usages.
 
     Rendering a component via `<FitCard />` is a real dependency edge, just
     like calling a function — it is not a `call_expression` node in the JSX
     grammar, so it must be matched separately or every React/Next.js
     component would show zero fan-in regardless of how often it's used.
+
+    `function_spans` maps each known function's exact byte range (including
+    the arrow-function/function-expression value node for
+    `const foo = () => ...` bindings, as produced by `_iter_js_functions`) to
+    its id, so this walk can track the enclosing function without a second
+    scope-detection pass.
     """
 
-    def walk(node: Node) -> Iterator[str]:
+    def walk(node: Node, enclosing: str | None) -> Iterator[tuple[str | None, str]]:
+        scope = function_spans.get((node.start_byte, node.end_byte), enclosing)
         if node.type == "call_expression":
             fn = node.child_by_field_name("function")
             if fn is not None:
                 name = _extract_reference_name(fn, source, "property")
                 if name:
-                    yield name
+                    yield enclosing, name
         elif node.type in _JSX_ELEMENT_TYPES:
             tag = node.child_by_field_name("name")
             if tag is not None:
                 name = _extract_reference_name(tag, source, "property")
                 if name:
-                    yield name
+                    yield enclosing, name
         for child in node.children:
-            yield from walk(child)
+            yield from walk(child, scope)
 
-    yield from walk(root)
+    yield from walk(root, None)
 
 
 _JS_DECISION_TYPES = frozenset(
@@ -165,7 +185,9 @@ class LanguageSpec:
     ts_language: Language
     extensions: frozenset[str]
     iter_functions: Callable[[Node, bytes], Iterator[tuple[str, Node]]]
-    iter_calls: Callable[[Node, bytes], Iterator[str]]
+    iter_calls: Callable[
+        [Node, bytes, dict[tuple[int, int], str]], Iterator[tuple[str | None, str]]
+    ]
     is_decision: Callable[[Node, bytes], bool]
 
 
