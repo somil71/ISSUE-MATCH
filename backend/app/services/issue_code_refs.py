@@ -36,6 +36,8 @@ def match_code_references(
                         "file": entry["file"],
                         "bucket": entry["bucket"],
                         "summary": entry.get("summary"),
+                        "has_test_coverage": entry.get("has_test_coverage", False),
+                        "direct_callers": entry.get("direct_callers", []),
                     }
                 )
             continue
@@ -52,6 +54,8 @@ def match_code_references(
                         "file": file_path,
                         "bucket": _worst_bucket_in_file(file_path, cached_functions),
                         "summary": None,
+                        "has_test_coverage": False,
+                        "direct_callers": [],
                     }
                 )
 

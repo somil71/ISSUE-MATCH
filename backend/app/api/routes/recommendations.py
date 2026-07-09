@@ -10,6 +10,7 @@ from app.services.explanation import explain_issue
 from app.services.intro_draft import draft_intro_comment
 from app.services.issue_code_refs import extract_backtick_references, match_code_references
 from app.services.label_accuracy import compute_label_accuracy
+from app.services.pr_playbook import build_pr_playbook
 from app.services.recommendation import rank_issues
 
 
@@ -83,6 +84,13 @@ async def ranked_issues(owner: str, name: str, user: User = Depends(get_current_
                 "beginner_friendly_label": has_beginner_friendly_label(label_names),
                 "code_references": code_references,
                 "draft_comment": draft_intro_comment(primary_reference, code_owner, skill_terms),
+                "pr_playbook": build_pr_playbook(
+                    issue["number"],
+                    issue["title"],
+                    primary_reference,
+                    code_owner,
+                    cached.get("test_directory") if cached is not None else None,
+                ),
             }
         )
 

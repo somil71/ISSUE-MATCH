@@ -1,7 +1,11 @@
 from pathlib import Path
 
 from app.services.parsing.engine import parse_file
-from app.services.test_proximity import build_tested_names, is_test_file
+from app.services.test_proximity import (
+    build_tested_names,
+    find_test_directory_convention,
+    is_test_file,
+)
 
 
 def test_is_test_file_recognizes_common_conventions() -> None:
@@ -32,3 +36,26 @@ def test_build_tested_names_only_credits_functions_called_from_test_files(
 
     assert "add" in tested
     assert "subtract" not in tested
+
+
+def test_find_test_directory_convention_picks_most_common_dir(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("def add():\n    return 1\n")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_a.py").write_text("def test_a():\n    pass\n")
+    (tmp_path / "tests" / "test_b.py").write_text("def test_b():\n    pass\n")
+
+    parsed_files = []
+    for relative in ("app.py", "tests/test_a.py", "tests/test_b.py"):
+        parsed = parse_file(tmp_path / relative, relative)
+        assert parsed is not None
+        parsed_files.append(parsed)
+
+    assert find_test_directory_convention(parsed_files) == "tests"
+
+
+def test_find_test_directory_convention_returns_none_without_test_files(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("def add():\n    return 1\n")
+    parsed = parse_file(tmp_path / "app.py", "app.py")
+    assert parsed is not None
+
+    assert find_test_directory_convention([parsed]) is None

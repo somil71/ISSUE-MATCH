@@ -130,6 +130,19 @@ export interface CodeReference {
   summary: string | null
 }
 
+export interface PrPlaybookStartHere {
+  function: string
+  file: string
+  direct_callers: string[]
+}
+
+export interface PrPlaybook {
+  branch_name: string
+  start_here: PrPlaybookStartHere | null
+  test_guidance: string
+  pr_description: string
+}
+
 export interface RankedIssue {
   number: number
   title: string
@@ -141,6 +154,7 @@ export interface RankedIssue {
   beginner_friendly_label: boolean
   code_references: CodeReference[]
   draft_comment: string
+  pr_playbook: PrPlaybook
 }
 
 export interface LabelDisagreement {

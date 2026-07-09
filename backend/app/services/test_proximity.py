@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 from pathlib import PurePosixPath
 
 from app.services.parsing.engine import ParsedFile
@@ -29,3 +30,19 @@ def build_tested_names(parsed_files: list[ParsedFile]) -> frozenset[str]:
         if is_test_file(parsed_file.relative_path):
             tested.update(parsed_file.call_names)
     return frozenset(tested)
+
+
+def find_test_directory_convention(parsed_files: list[ParsedFile]) -> str | None:
+    """The most common directory holding test files in this repo, so "add a
+    test" guidance can point at a real, existing convention instead of
+    inventing one. None if the repo has no recognized test files at all."""
+    directory_counts: Counter[str] = Counter()
+    for parsed_file in parsed_files:
+        posix_path = parsed_file.relative_path.replace("\\", "/")
+        if not is_test_file(posix_path):
+            continue
+        directory_counts["." if "/" not in posix_path else posix_path.rsplit("/", 1)[0]] += 1
+
+    if not directory_counts:
+        return None
+    return directory_counts.most_common(1)[0][0]

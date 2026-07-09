@@ -19,6 +19,8 @@ def test_match_code_references_resolves_function_name() -> None:
                 "bucket": "here_be_dragons",
                 "score": 0.7,
                 "summary": "3 callers, no branches, no nearby tests.",
+                "has_test_coverage": False,
+                "direct_callers": ["loadApp"],
             }
         ],
     }
@@ -29,20 +31,45 @@ def test_match_code_references_resolves_function_name() -> None:
             "file": "lib/config.ts",
             "bucket": "here_be_dragons",
             "summary": "3 callers, no branches, no nearby tests.",
+            "has_test_coverage": False,
+            "direct_callers": ["loadApp"],
         }
     ]
 
 
 def test_match_code_references_resolves_file_path_to_worst_bucket() -> None:
     cached_functions = {
-        "a": [{"file": "lib/config.ts", "bucket": "start_here", "score": 0.1, "summary": "x"}],
+        "a": [
+            {
+                "file": "lib/config.ts",
+                "bucket": "start_here",
+                "score": 0.1,
+                "summary": "x",
+                "has_test_coverage": True,
+                "direct_callers": [],
+            }
+        ],
         "b": [
-            {"file": "lib/config.ts", "bucket": "here_be_dragons", "score": 0.8, "summary": "y"}
+            {
+                "file": "lib/config.ts",
+                "bucket": "here_be_dragons",
+                "score": 0.8,
+                "summary": "y",
+                "has_test_coverage": False,
+                "direct_callers": [],
+            }
         ],
     }
     matched = match_code_references(["lib/config.ts"], cached_functions, ["lib/config.ts"])
     assert matched == [
-        {"name": None, "file": "lib/config.ts", "bucket": "here_be_dragons", "summary": None}
+        {
+            "name": None,
+            "file": "lib/config.ts",
+            "bucket": "here_be_dragons",
+            "summary": None,
+            "has_test_coverage": False,
+            "direct_callers": [],
+        }
     ]
 
 

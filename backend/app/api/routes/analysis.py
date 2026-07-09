@@ -81,6 +81,15 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
         )
         for fid in fan_in_metrics
     }
+    direct_callers_by_id = {
+        fid: sorted(
+            {
+                call_graph_data.all_functions[caller_id].name
+                for caller_id in call_graph_data.reverse_edges.get(fid, ())
+            }
+        )
+        for fid in fan_in_metrics
+    }
 
     functions = [
         {
@@ -91,6 +100,7 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
             "end_line": fm.function.end_line,
             "fan_in": fm.fan_in,
             "transitive_fan_in": transitive_fan_in_by_id[fid],
+            "direct_callers": direct_callers_by_id[fid],
             "name_is_ambiguous": fm.name_is_ambiguous,
             "cyclomatic_complexity": complexity_by_id[fid],
             "has_test_coverage": blast_radius[fid].has_test_coverage,
@@ -110,7 +120,10 @@ async def analyze_repo(owner: str, name: str, user: User = Depends(get_current_u
         file: {"author": owner.author, "commit_count": owner.commit_count}
         for file, owner in owners_by_file.items()
     }
-    await analysis_cache.store_analysis(full_name, commit_sha, functions, owners_payload)
+    test_directory = test_proximity.find_test_directory_convention(parsed_files)
+    await analysis_cache.store_analysis(
+        full_name, commit_sha, functions, owners_payload, test_directory
+    )
     graph_edges = {
         caller_id: sorted(callee_ids) for caller_id, callee_ids in call_graph_data.edges.items()
     }

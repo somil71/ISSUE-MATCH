@@ -12,13 +12,14 @@ async def store_analysis(
     commit_sha: str,
     functions: list[dict],
     owners: dict[str, dict] | None = None,
+    test_directory: str | None = None,
 ) -> None:
     """Caches a compact view of an /analyze result so /issues can cross-
     reference issue text against real function-level blast radius data
     without re-cloning and re-parsing the repo. `owners` (file -> real git
-    commit authorship) rides along in the same cache so the auto-drafted
-    intro comment can name who most recently touched the code, also
-    without a re-clone."""
+    commit authorship) and `test_directory` (this repo's actual test-folder
+    convention) ride along in the same cache so the auto-drafted intro
+    comment and PR playbook can use them, also without a re-clone."""
     by_name: dict[str, list[dict]] = {}
     for fn in functions:
         by_name.setdefault(fn["name"], []).append(
@@ -27,6 +28,8 @@ async def store_analysis(
                 "bucket": fn["bucket"],
                 "score": fn["blast_radius_score"],
                 "summary": fn["summary"],
+                "has_test_coverage": fn["has_test_coverage"],
+                "direct_callers": fn.get("direct_callers", []),
             }
         )
     files = sorted({fn["file"] for fn in functions})
@@ -37,6 +40,7 @@ async def store_analysis(
             "functions": by_name,
             "files": files,
             "owners": owners or {},
+            "test_directory": test_directory,
         }
     )
     redis = get_redis()

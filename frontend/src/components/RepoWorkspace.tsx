@@ -6,6 +6,7 @@ import {
   apiPostJson,
   type FunctionMetric,
   type LabelAccuracy,
+  type PrPlaybook,
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
@@ -387,15 +388,34 @@ function LabelAccuracyScoreboard({ accuracy }: { accuracy: LabelAccuracy }) {
   )
 }
 
-function DraftCommentPanel({ draft }: { draft: string }) {
-  const [expanded, setExpanded] = useState(false)
+function CopyButton({ text, label = 'Copy to clipboard' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(draft)
+    await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-text-dim transition-colors hover:bg-accent-bg hover:text-accent-bright"
+    >
+      {copied ? 'Copied!' : label}
+    </button>
+  )
+}
+
+function ContributorPlaybookPanel({
+  draft,
+  playbook,
+}: {
+  draft: string
+  playbook: PrPlaybook
+}) {
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <div className="mt-2">
@@ -404,18 +424,62 @@ function DraftCommentPanel({ draft }: { draft: string }) {
         onClick={() => setExpanded((v) => !v)}
         className="text-xs font-medium text-accent-bright hover:underline"
       >
-        {expanded ? 'Hide draft comment' : "Draft my \"I'd like to work on this\" comment"}
+        {expanded ? 'Hide contributor playbook' : "Draft my \"I'd like to work on this\" comment"}
       </button>
       {expanded && (
-        <div className="mt-1.5 rounded-md border border-border bg-surface-0 p-2.5">
-          <p className="whitespace-pre-wrap text-xs text-text-dim">{draft}</p>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="mt-2 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-text-dim transition-colors hover:bg-accent-bg hover:text-accent-bright"
-          >
-            {copied ? 'Copied!' : 'Copy to clipboard'}
-          </button>
+        <div className="mt-1.5 flex flex-col gap-3 rounded-md border border-border bg-surface-0 p-2.5">
+          <div>
+            <p className="whitespace-pre-wrap text-xs text-text-dim">{draft}</p>
+            <div className="mt-2">
+              <CopyButton text={draft} />
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-3">
+            <span className="text-[11px] font-semibold text-text-bright">
+              Next: from claimed issue to opened PR
+            </span>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] text-text-dim">Suggested branch:</span>
+              <code className="metric rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-text-bright">
+                {playbook.branch_name}
+              </code>
+              <CopyButton text={playbook.branch_name} label="Copy" />
+            </div>
+
+            {playbook.start_here && (
+              <p className="mt-2 text-[11px] text-text-dim">
+                Start at{' '}
+                <span className="metric text-text-bright">
+                  {playbook.start_here.function}
+                </span>{' '}
+                in{' '}
+                <span className="metric text-text-bright">{playbook.start_here.file}</span>.
+                {playbook.start_here.direct_callers.length > 0 && (
+                  <>
+                    {' '}
+                    Called directly by:{' '}
+                    <span className="metric text-text-bright">
+                      {playbook.start_here.direct_callers.join(', ')}
+                    </span>
+                    .
+                  </>
+                )}
+              </p>
+            )}
+
+            <p className="mt-2 text-[11px] text-text-dim">{playbook.test_guidance}</p>
+
+            <div className="mt-2 rounded-md border border-border bg-surface-1 p-2">
+              <p className="whitespace-pre-wrap text-[11px] text-text-dim">
+                {playbook.pr_description}
+              </p>
+              <div className="mt-2">
+                <CopyButton text={playbook.pr_description} label="Copy PR description" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -599,14 +663,14 @@ export function RepoWorkspace() {
               ref={tableScrollRef}
               className="mt-3 max-h-[32rem] overflow-y-auto rounded-md border border-border"
             >
-              <table className="w-full text-left text-sm">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-surface-2 text-text-dim">
                   <tr>
-                    <th className="px-3 py-2 font-medium">Function</th>
-                    <th className="px-3 py-2 font-medium">File</th>
-                    <th className="px-3 py-2 font-medium">Signals</th>
-                    <th className="px-3 py-2 font-medium text-right">Test</th>
-                    <th className="px-3 py-2 font-medium">Bucket</th>
+                    <th className="w-40 px-3 py-2 font-medium">Function</th>
+                    <th className="w-52 px-3 py-2 font-medium">File</th>
+                    <th className="w-44 px-3 py-2 font-medium">Signals</th>
+                    <th className="w-14 px-3 py-2 font-medium text-right">Test</th>
+                    <th className="w-28 px-3 py-2 font-medium">Bucket</th>
                     <th className="px-3 py-2 font-medium">Why</th>
                   </tr>
                 </thead>
@@ -616,22 +680,25 @@ export function RepoWorkspace() {
                       key={fn.id}
                       className="border-t border-border align-top transition-colors hover:bg-surface-2/50"
                     >
-                      <td className="metric px-3 py-2 text-text-bright">
+                      <td className="metric truncate px-3 py-2 text-text-bright">
                         <button
                           type="button"
                           onClick={() => setMapFunctionId(fn.id)}
-                          className="text-left hover:text-accent-bright hover:underline"
-                          title={`${fn.transitive_fan_in} functions transitively depend on this — click to trace the real call graph outward`}
+                          className="max-w-full truncate align-bottom hover:text-accent-bright hover:underline"
+                          title={`${fn.name} — ${fn.transitive_fan_in} functions transitively depend on this — click to trace the real call graph outward`}
                         >
                           {fn.name}
                         </button>
                         {fn.name_is_ambiguous && (
                           <span className="ml-1 text-xs text-caution">
-                            (ambiguous name)
+                            (ambiguous)
                           </span>
                         )}
                       </td>
-                      <td className="metric px-3 py-2 text-text-dim">
+                      <td
+                        className="metric truncate px-3 py-2 text-text-dim"
+                        title={`${fn.file}:${fn.start_line}`}
+                      >
                         {fn.file}:{fn.start_line}
                       </td>
                       <td className="px-3 py-2">
@@ -649,7 +716,10 @@ export function RepoWorkspace() {
                           bucket={computeBucket(fn.blast_radius_score, bucketThreshold)}
                         />
                       </td>
-                      <td className="max-w-xs px-3 py-2 text-xs text-text-dim">
+                      <td
+                        className="line-clamp-2 px-3 py-2 text-xs text-text-dim"
+                        title={fn.summary}
+                      >
                         {fn.summary}
                       </td>
                     </tr>
@@ -806,7 +876,10 @@ export function RepoWorkspace() {
                       ))}
                     </div>
                   )}
-                  <DraftCommentPanel draft={issue.draft_comment} />
+                  <ContributorPlaybookPanel
+                    draft={issue.draft_comment}
+                    playbook={issue.pr_playbook}
+                  />
                 </li>
               ))}
             </ul>
