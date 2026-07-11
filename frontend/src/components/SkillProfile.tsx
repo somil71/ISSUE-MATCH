@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiPatchJson, type CurrentUser } from '../lib/api'
+import { useToast } from '../lib/toast'
 import { TagIcon } from './Icons'
 import { SectionCard } from './SectionCard'
 
@@ -8,6 +9,7 @@ const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'advanced'] as const
 
 export function SkillProfile({ user }: { user: CurrentUser }) {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [skills, setSkills] = useState<string[]>(user.skills)
   const [draft, setDraft] = useState('')
   const [experienceLevel, setExperienceLevel] = useState(
@@ -19,6 +21,10 @@ export function SkillProfile({ user }: { user: CurrentUser }) {
       apiPatchJson<CurrentUser>('/users/me', payload),
     onSuccess: (updated) => {
       queryClient.setQueryData(['session'], updated)
+      toast.push('Profile saved.', 'success')
+    },
+    onError: () => {
+      toast.push('Could not save your profile — try again.', 'error')
     },
   })
 
@@ -90,8 +96,8 @@ export function SkillProfile({ user }: { user: CurrentUser }) {
         />
       </div>
 
-      <div className="mt-4 flex items-end gap-3">
-        <label className="flex-1 text-sm text-text-dim">
+      <div className="mt-4">
+        <label className="text-sm text-text-dim">
           Experience level
           <select
             value={experienceLevel}
@@ -110,15 +116,11 @@ export function SkillProfile({ user }: { user: CurrentUser }) {
           type="button"
           onClick={handleSave}
           disabled={mutation.isPending}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-bright disabled:opacity-50"
+          className="mt-3 w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent transition-colors hover:bg-accent-bright disabled:opacity-50"
         >
           {mutation.isPending ? 'Saving…' : 'Save profile'}
         </button>
       </div>
-
-      {mutation.isSuccess && (
-        <span className="mt-2 block text-sm text-safe">Saved.</span>
-      )}
     </SectionCard>
   )
 }

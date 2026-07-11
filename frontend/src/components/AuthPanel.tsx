@@ -12,7 +12,7 @@ export function AuthPanel() {
       <button
         type="button"
         onClick={loginWithGitHub}
-        className="rounded-md border border-border-bright px-3.5 py-1.5 text-sm font-medium text-text-bright transition-colors hover:bg-surface-2"
+        className="rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-on-accent transition-colors hover:bg-accent-bright"
       >
         Sign in
       </button>

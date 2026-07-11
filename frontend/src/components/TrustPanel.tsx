@@ -20,11 +20,10 @@ export function TrustPanel() {
 
   return (
     <div
-      className="flex items-center gap-1.5"
-      title={`This backend's only allowed outbound HTTP calls are to GitHub — live list of hosts actually contacted this session: ${label}`}
+      className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-surface-2"
+      title={`Zero-external-AI guarantee — live list of hosts actually contacted this session: ${label}`}
     >
-      <ShieldIcon className={`h-3.5 w-3.5 ${onlyGithub ? 'text-safe' : 'text-danger'}`} />
-      <span className="metric hidden text-xs text-text-dim sm:inline">{label}</span>
+      <ShieldIcon className={`h-4 w-4 ${onlyGithub ? 'text-safe' : 'text-danger'}`} />
     </div>
   )
 }

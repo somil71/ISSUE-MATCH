@@ -17,10 +17,10 @@ export function SystemStatus() {
       : `API ok · database ${data!.services.database} · cache ${data!.services.cache}`
 
   return (
-    <div className="flex items-center gap-1.5" title={label}>
-      <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
-      <span className="hidden text-xs text-text-dim sm:inline">
-        {isLoading ? 'Checking…' : ok ? 'All systems operational' : 'Degraded'}
+    <div className="flex h-8 items-center gap-1.5 px-1" title={label}>
+      <span className={`h-2 w-2 rounded-full ${dotColor}`} />
+      <span className="hidden text-xs text-text-dim md:inline">
+        {isLoading ? 'Checking…' : ok ? 'Operational' : 'Degraded'}
       </span>
     </div>
   )

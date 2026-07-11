@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings - IssueMatch AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#acedff",
+                        "on-secondary-container": "#d6a9ff",
+                        "tertiary": "#4cd7f6",
+                        "on-tertiary-fixed": "#001f26",
+                        "outline-variant": "#464554",
+                        "primary": "#c0c1ff",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "inverse-surface": "#e2e2e9",
+                        "surface-container-highest": "#33353a",
+                        "surface-container-high": "#282a2f",
+                        "secondary-fixed": "#f0dbff",
+                        "on-primary-fixed": "#07006c",
+                        "surface-container-low": "#1a1b21",
+                        "on-tertiary-container": "#002f38",
+                        "on-surface-variant": "#c7c4d7",
+                        "surface-container-lowest": "#0c0e13",
+                        "background": "#111318",
+                        "on-error": "#690005",
+                        "on-background": "#e2e2e9",
+                        "secondary": "#ddb7ff",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "surface-bright": "#37393f",
+                        "tertiary-fixed-dim": "#4cd7f6",
+                        "inverse-primary": "#494bd6",
+                        "surface-dim": "#111318",
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#2e3036",
+                        "surface-container": "#1e1f25",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-surface": "#e2e2e9",
+                        "surface": "#111318",
+                        "primary-container": "#8083ff",
+                        "on-tertiary": "#003640",
+                        "on-primary-container": "#0d0096",
+                        "tertiary-container": "#009eb9",
+                        "primary-fixed": "#e1e0ff",
+                        "on-secondary-fixed": "#2c0051",
+                        "on-primary": "#1000a9",
+                        "secondary-container": "#6f00be",
+                        "on-secondary": "#490080",
+                        "surface-tint": "#c0c1ff",
+                        "surface-variant": "#33353a",
+                        "error": "#ffb4ab",
+                        "outline": "#908fa0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "40px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "container-max": "1440px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-base": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-label": ["JetBrains Mono"],
+                        "mono-data": ["JetBrains Mono"],
+                        "mono-code": ["JetBrains Mono"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-label": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "mono-data": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-code": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0A0C11;
+            color: #e2e2e9;
+        }
+        .card-border {
+            border: 1px solid #2D3343;
+        }
+        .card-hover:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        .input-bg {
+            background-color: #0A0C11;
+        }
+        .btn-primary {
+            background-color: #494bd6; /* Using inverse-primary as solid indigo approx */
+            color: white;
+        }
+        .btn-ghost {
+            background-color: transparent;
+            border: 1px solid #2D3343;
+        }
+        .btn-ghost:hover {
+            background-color: #1A1E2A;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- TopNavBar (Shared Component) - Suppressed for Settings context based on instructions to suppress nav for focused tasks, but wait, Settings is often a destination. I will render it based on JSON presence but adapt. Actually, instructions say "If designing a user settings page, "Profile" is active. If designing a search page, "Explore" is active." Let's render it and highlight Profile. But wait, TopNav tabs are Dashboard, Matches, Explorer, Reports. None is Profile. Let's not highlight any in TopNav, rely on SideNav. -->
+<nav class="bg-background dark:bg-background text-primary dark:text-primary-fixed-dim border-b border-outline-variant bg-background/80 backdrop-blur-md fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg py-sm h-16 hidden md:flex">
+<div class="flex items-center gap-lg">
+<div class="font-display-lg text-display-lg font-black text-primary tracking-tighter">IssueMatch AI</div>
+<div class="flex gap-md">
+<a class="text-on-surface-variant font-mono-label font-mono-label text-mono-label hover:text-primary transition-colors duration-200" href="#">Dashboard</a>
+<a class="text-on-surface-variant font-mono-label font-mono-label text-mono-label hover:text-primary transition-colors duration-200" href="#">Matches</a>
+<a class="text-on-surface-variant font-mono-label font-mono-label text-mono-label hover:text-primary transition-colors duration-200" href="#">Explorer</a>
+<a class="text-on-surface-variant font-mono-label font-mono-label text-mono-label hover:text-primary transition-colors duration-200" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary hover:text-tertiary cursor-pointer transition-colors scale-95 duration-100 ease-in-out">shield</span>
+<span class="material-symbols-outlined text-primary hover:text-tertiary cursor-pointer transition-colors scale-95 duration-100 ease-in-out text-primary border-b-2 border-primary pb-1">settings</span> <!-- Highlighted setting icon -->
+<button class="font-mono-label text-mono-label text-primary hover:text-tertiary transition-colors">Sign Out</button>
+<img alt="User avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A small, stylized digital avatar of a futuristic developer with glowing blue accents against a dark technical background. High contrast, minimalist vector art style, professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLV9JkP4UnAKslSFAqd8r9R51WrVvvvN1kYJgcP7mBWCVS9_OEOZM2ZldUzOX6aFfF01GFT6DXetxmd8JJ8BHRn5DfkIaZAXT-GOLZ9JwYBKANWzJkOFQCAWI8A7TG46UFHHfG2PiQToDIYCHTYJX2V7DfiorWx2Xb2G7FMWKHpJ-S6SI8L_pt3fd4lCGzHhHF0piF95rJdZtfCfW-Eprr5tAkxrRJJgAtAnMci5Dm8QIJ2l_EYDJM"/>
+</div>
+</nav>
+<div class="flex flex-1 pt-16 h-full relative">
+<!-- Side Nav for Settings context -->
+<aside class="hidden md:flex flex-col h-full w-[260px] fixed left-0 bg-surface-container-low dark:bg-surface-container-lowest border-r border-outline-variant p-md gap-sm z-40 top-16 bottom-0">
+<div class="mb-lg">
+<h2 class="font-display-lg text-display-lg text-primary mb-xs">Settings</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Account &amp; Preferences</p>
+</div>
+<nav class="flex flex-col gap-xs flex-1">
+<!-- Profile is active -->
+<a class="flex items-center gap-sm bg-secondary-container text-on-secondary-container rounded-lg px-md py-sm font-mono-label text-mono-label scale-98 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+                    Profile
+                </a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:bg-surface-container-highest rounded-lg px-md py-sm font-mono-label text-mono-label hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">code</span>
+                    GitHub Connection
+                </a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:bg-surface-container-highest rounded-lg px-md py-sm font-mono-label text-mono-label hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">tune</span>
+                    Preferences
+                </a>
+<div class="mt-auto">
+<a class="flex items-center gap-sm text-error hover:bg-error-container/20 rounded-lg px-md py-sm font-mono-label text-mono-label transition-all" href="#">
+<span class="material-symbols-outlined">warning</span>
+                        Danger Zone
+                    </a>
+</div>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-[260px] p-lg md:p-xl bg-background overflow-y-auto w-full">
+<div class="max-w-[800px] mx-auto space-y-xl">
+<!-- Page Header -->
+<div>
+<h1 class="font-headline-md text-headline-md text-on-background mb-sm">Profile Settings</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">Manage your personal information and developer skill profile.</p>
+</div>
+<!-- Bento Grid Layout for Sections -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Basic Info Card -->
+<div class="bg-[#1A1E2A] card-border rounded-xl p-lg card-hover transition-colors duration-300 md:col-span-2 flex flex-col md:flex-row gap-lg items-start">
+<div class="flex-shrink-0">
+<img alt="Profile Avatar" class="w-24 h-24 rounded-full border-2 border-primary object-cover" data-alt="A highly detailed, professional headshot avatar of a developer in a dark, atmospheric cyber-environment. Cool blue and purple ambient lighting, hyper-realistic, dark theme UI styling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAs-AicpA4SeaXfy52TmmRlfLGOc3AboB7VJeqqNM_jT9-sF0KTXhsTIcXxeI4C0Dbjljfr86rat1h4-MEwW0EC0t84hE1SCrI7PeUJ6ZNI6XqUt83LqTHAoiq1bzOEKxwkQUaqRMKndSXtSl3GJ9uWxbNAdQ32fpQsnr9u-8QrLxUSumDkEgPx6Sj6mIeovf7GrYz2JiSaG1eHGYmfnB2lYK-6i9myUNf8WP3Hvdd-VtIptKRHQ_0B"/>
+<button class="mt-sm w-full btn-ghost py-xs rounded font-mono-label text-mono-label text-on-surface-variant">Change</button>
+</div>
+<div class="flex-1 space-y-md w-full">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="font-mono-label text-mono-label text-primary">Full Name</label>
+<input class="w-full input-bg border border-outline-variant rounded p-sm font-mono-data text-mono-data text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" type="text" value="Alex Developer"/>
+</div>
+<div class="space-y-xs">
+<label class="font-mono-label text-mono-label text-primary">Email Address</label>
+<input class="w-full input-bg border border-outline-variant rounded p-sm font-mono-data text-mono-data text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" type="email" value="alex.dev@example.com"/>
+</div>
+<div class="space-y-xs md:col-span-2">
+<label class="font-mono-label text-mono-label text-primary">Bio</label>
+<textarea class="w-full input-bg border border-outline-variant rounded p-sm font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" rows="3">Senior Backend Engineer focusing on distributed systems and AI integration.</textarea>
+</div>
+</div>
+<div class="flex justify-end">
+<button class="btn-primary px-lg py-sm rounded font-mono-label text-mono-label hover:bg-inverse-primary/90 transition-colors">Save Profile</button>
+</div>
+</div>
+</div>
+<!-- Skill Profile Card -->
+<div class="bg-[#1A1E2A] card-border rounded-xl p-lg card-hover transition-colors duration-300 md:col-span-2">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-tertiary">psychology</span>
+<h3 class="font-headline-md text-headline-md text-on-background text-[20px]">Skill Profile</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">This data is used to improve issue matching accuracy.</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Signal: Python -->
+<div class="bg-surface-container-low p-md rounded border border-outline-variant flex items-center justify-between">
+<span class="font-mono-label text-mono-label text-on-surface">Python</span>
+<div class="flex items-end gap-[2px] h-4">
+<div class="w-1.5 h-2 bg-tertiary rounded-t-sm"></div>
+<div class="w-1.5 h-3 bg-tertiary rounded-t-sm"></div>
+<div class="w-1.5 h-4 bg-tertiary rounded-t-sm"></div>
+</div>
+</div>
+<!-- Signal: React -->
+<div class="bg-surface-container-low p-md rounded border border-outline-variant flex items-center justify-between">
+<span class="font-mono-label text-mono-label text-on-surface">React/TS</span>
+<div class="flex items-end gap-[2px] h-4">
+<div class="w-1.5 h-2 bg-primary rounded-t-sm"></div>
+<div class="w-1.5 h-3 bg-primary rounded-t-sm"></div>
+<div class="w-1.5 h-full bg-[#2D3343] rounded-t-sm"></div>
+</div>
+</div>
+<!-- Signal: Go -->
+<div class="bg-surface-container-low p-md rounded border border-outline-variant flex items-center justify-between">
+<span class="font-mono-label text-mono-label text-on-surface">Go</span>
+<div class="flex items-end gap-[2px] h-4">
+<div class="w-1.5 h-2 bg-secondary rounded-t-sm"></div>
+<div class="w-1.5 h-full bg-[#2D3343] rounded-t-sm"></div>
+<div class="w-1.5 h-full bg-[#2D3343] rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<button class="mt-md font-mono-label text-mono-label text-tertiary hover:underline flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">add</span> Add Skill
+                        </button>
+</div>
+<!-- GitHub Connection Card -->
+<div class="bg-[#1A1E2A] card-border rounded-xl p-lg card-hover transition-colors duration-300">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary">code</span>
+<h3 class="font-headline-md text-headline-md text-on-background text-[20px]">GitHub Status</h3>
+</div>
+<div class="bg-surface-container-low p-md rounded border border-outline-variant mb-md">
+<div class="flex items-center justify-between mb-sm">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Connected Account</span>
+<span class="flex items-center gap-xs text-tertiary font-mono-data text-mono-data">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span> Active
+                                </span>
+</div>
+<div class="font-mono-code text-mono-code text-on-surface bg-background p-xs rounded inline-block">@alexdev-io</div>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+                            Last sync: 2 hours ago
+                        </div>
+<button class="mt-md w-full btn-ghost py-sm rounded font-mono-label text-mono-label text-on-surface-variant">Force Sync Now</button>
+</div>
+<!-- Danger Zone Card -->
+<div class="bg-[#1A1E2A] card-border rounded-xl p-lg border-error/30 hover:border-error/60 transition-colors duration-300">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-error">warning</span>
+<h3 class="font-headline-md text-headline-md text-error text-[20px]">Danger Zone</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-lg">Irreversible actions regarding your account and data.</p>
+<div class="space-y-sm">
+<button class="w-full bg-background border border-error/50 hover:bg-error-container/20 text-error py-sm px-md rounded font-mono-label text-mono-label flex justify-between items-center transition-colors">
+                                Revoke OAuth Access
+                                <span class="material-symbols-outlined text-[18px]">key_off</span>
+</button>
+<button class="w-full bg-error-container hover:bg-error-container/80 text-on-error-container py-sm px-md rounded font-mono-label text-mono-label flex justify-between items-center transition-colors">
+                                Delete Account
+                                <span class="material-symbols-outlined text-[18px]">delete_forever</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer (Shared Component) -->
+<footer class="bg-background w-full py-lg px-xl flex justify-between items-center max-w-container-max mx-auto border-t border-outline-variant mt-xl text-tertiary font-mono-label text-mono-label">
+<div class="font-display-lg text-primary text-[24px]">IssueMatch AI</div>
+<div class="text-on-surface-variant">© 2024 IssueMatch AI v2.4.0</div>
+<div class="flex gap-md opacity-80 hover:opacity-100 transition-opacity">
+<a class="text-on-surface-variant hover:text-tertiary underline" href="#">Terms</a>
+<a class="text-on-surface-variant hover:text-tertiary underline" href="#">Privacy</a>
+<a class="text-on-surface-variant hover:text-tertiary underline" href="#">Security</a>
+<a class="text-on-surface-variant hover:text-tertiary underline" href="#">Contact</a>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

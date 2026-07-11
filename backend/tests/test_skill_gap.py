@@ -55,6 +55,39 @@ def test_extract_required_skills_dedupes_language_marker_against_manifest_entry(
     assert typescript_variants == ["TypeScript"]
 
 
+def test_extract_required_skills_finds_manifest_in_subdirectory(tmp_path: Path) -> None:
+    app_dir = tmp_path / "card"
+    app_dir.mkdir()
+    (app_dir / "package.json").write_text('{"dependencies": {"react": "^18.0.0"}}')
+
+    skills = extract_required_skills(tmp_path)
+
+    assert "JavaScript" in skills
+    assert "react" in skills
+
+
+def test_extract_required_skills_ignores_vendored_manifests(tmp_path: Path) -> None:
+    vendored = tmp_path / "node_modules" / "some-dep"
+    vendored.mkdir(parents=True)
+    (vendored / "package.json").write_text('{"dependencies": {"leftpad": "^1.0.0"}}')
+
+    skills = extract_required_skills(tmp_path)
+
+    assert skills == set()
+
+
+def test_extract_required_skills_prefers_shallowest_manifest(tmp_path: Path) -> None:
+    (tmp_path / "package.json").write_text('{"dependencies": {"top": "1.0.0"}}')
+    nested = tmp_path / "packages" / "core"
+    nested.mkdir(parents=True)
+    (nested / "package.json").write_text('{"dependencies": {"nested": "1.0.0"}}')
+
+    skills = extract_required_skills(tmp_path)
+
+    assert "top" in skills
+    assert "nested" not in skills
+
+
 def test_compute_gap_is_case_insensitive_set_difference() -> None:
     required = {"Python", "FastAPI", "Docker", "redis"}
     user_skills = ["python", "fastapi"]

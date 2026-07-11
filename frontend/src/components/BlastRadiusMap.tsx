@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, type BlastMapNode, type BlastMapResponse } from '../lib/api'
+import { BlastMapSkeleton } from './Skeleton'
 
 const RING_STEP = 74
 const CENTER = 320
@@ -88,10 +89,10 @@ export function BlastRadiusMap({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-xl border border-border bg-surface-1 p-5"
+        className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-border bg-surface-1/80 shadow-2xl shadow-black/40 backdrop-blur-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
           <div>
             <h3 className="text-sm font-semibold text-text-bright">
               Blast Radius Map
@@ -110,52 +111,59 @@ export function BlastRadiusMap({
           </button>
         </div>
 
-        {focusId !== functionId && (
-          <button
-            onClick={() => setFocusId(functionId)}
-            className="metric mt-3 rounded-full bg-surface-2 px-2.5 py-1 text-xs text-text-dim hover:text-text-bright"
-          >
-            ← back to {functionId.split('::')[1]?.split(':')[0] ?? functionId}
-          </button>
-        )}
-
-        {map.isPending && (
-          <p className="mt-4 text-sm text-text-dim">
-            Tracing the dependency graph…
-          </p>
-        )}
-        {map.isError && (
-          <p className="mt-4 text-sm text-danger">
-            Could not load the graph for this function.
-          </p>
-        )}
-
-        {map.isSuccess && (
-          <>
-            <p className="mt-3 text-sm text-text-dim">
-              <span className="metric text-text-bright">
-                {map.data.total_transitive_dependents}
-              </span>{' '}
-              function
-              {map.data.total_transitive_dependents === 1 ? '' : 's'}{' '}
-              transitively depend on{' '}
-              <span className="metric text-text-bright">
-                {focusNode?.name ?? focusId}
-              </span>{' '}
-              — everything shown here could break if it changes.
-            </p>
-
-            {map.data.nodes.length <= 1 && (
-              <p className="mt-2 text-xs text-text-dim">
-                Nothing in the analyzed source calls this function, directly
-                or indirectly — it's a safe leaf in the real call graph.
-              </p>
-            )}
-
-            <svg
-              viewBox={`0 0 ${viewSize} ${viewSize}`}
-              className="mt-3 h-[32rem] w-full"
+        <div className="flex-1 overflow-auto p-5">
+          {focusId !== functionId && (
+            <button
+              onClick={() => setFocusId(functionId)}
+              className="metric mb-3 rounded-full bg-surface-2 px-2.5 py-1 text-xs text-text-dim hover:text-text-bright"
             >
+              ← back to {functionId.split('::')[1]?.split(':')[0] ?? functionId}
+            </button>
+          )}
+
+          {map.isPending && (
+            <>
+              <p className="text-sm text-text-dim">
+                Tracing the dependency graph…
+              </p>
+              <BlastMapSkeleton />
+            </>
+          )}
+          {map.isError && (
+            <p className="text-sm text-danger">
+              Could not load the graph for this function.
+            </p>
+          )}
+
+          {map.isSuccess && (
+            <>
+              <div
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
+                  map.data.total_transitive_dependents > 0
+                    ? 'bg-danger-bg text-danger'
+                    : 'bg-safe-bg text-safe'
+                }`}
+              >
+                <span className="metric font-semibold">
+                  {map.data.total_transitive_dependents}
+                </span>
+                <span>
+                  function
+                  {map.data.total_transitive_dependents === 1 ? '' : 's'}{' '}
+                  transitively depend on{' '}
+                  <span className="metric font-medium">
+                    {focusNode?.name ?? focusId}
+                  </span>
+                  {map.data.total_transitive_dependents > 0
+                    ? ' — everything shown here could break if it changes.'
+                    : " — it's a safe leaf in the real call graph."}
+                </span>
+              </div>
+
+              <svg
+                viewBox={`0 0 ${viewSize} ${viewSize}`}
+                className="mt-3 h-[70vh] w-full sm:h-[32rem]"
+              >
               {Array.from({ length: maxHop }, (_, i) => i + 1).map((hop) => (
                 <circle
                   key={hop}
@@ -193,7 +201,11 @@ export function BlastRadiusMap({
                 >
                   <circle
                     r={node.id === focusId ? NODE_RADIUS + 4 : NODE_RADIUS}
-                    fill={bucketColor(node.bucket)}
+                    fill={
+                      node.id === focusId
+                        ? 'var(--color-accent-bright)'
+                        : bucketColor(node.bucket)
+                    }
                     opacity={node.id === focusId ? 1 : 0.85}
                     stroke="var(--color-surface-0)"
                     strokeWidth={2}
@@ -211,9 +223,25 @@ export function BlastRadiusMap({
                   </text>
                 </g>
               ))}
-            </svg>
-          </>
-        )}
+              </svg>
+
+              <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-border pt-3 text-xs text-text-dim">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-accent-bright" />
+                  Origin node
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-danger" />
+                  Here Be Dragons
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-safe" />
+                  Start Here
+                </span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

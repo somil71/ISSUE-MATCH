@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IssueMatch AI - Technical Landing Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary": "#003640",
+                      "primary": "#c0c1ff",
+                      "surface-container-highest": "#33353a",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed-variant": "#004e5c",
+                      "tertiary-container": "#009eb9",
+                      "surface-bright": "#37393f",
+                      "background": "#111318",
+                      "on-secondary-container": "#d6a9ff",
+                      "on-secondary-fixed": "#2c0051",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "on-secondary-fixed-variant": "#6900b3",
+                      "outline": "#908fa0",
+                      "on-surface-variant": "#c7c4d7",
+                      "secondary-container": "#6f00be",
+                      "secondary-fixed": "#f0dbff",
+                      "surface-container": "#1e1f25",
+                      "surface-variant": "#33353a",
+                      "secondary": "#ddb7ff",
+                      "tertiary-fixed-dim": "#4cd7f6",
+                      "surface-container-lowest": "#0c0e13",
+                      "on-background": "#e2e2e9",
+                      "on-surface": "#e2e2e9",
+                      "on-tertiary-fixed": "#001f26",
+                      "inverse-on-surface": "#2e3036",
+                      "inverse-surface": "#e2e2e9",
+                      "surface-dim": "#111318",
+                      "error": "#ffb4ab",
+                      "on-error-container": "#ffdad6",
+                      "on-primary-fixed": "#07006c",
+                      "surface": "#111318",
+                      "surface-container-low": "#1a1b21",
+                      "on-primary": "#1000a9",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "tertiary": "#4cd7f6",
+                      "inverse-primary": "#494bd6",
+                      "surface-container-high": "#282a2f",
+                      "surface-tint": "#c0c1ff",
+                      "on-tertiary-container": "#002f38",
+                      "secondary-fixed-dim": "#ddb7ff",
+                      "tertiary-fixed": "#acedff",
+                      "primary-container": "#8083ff",
+                      "outline-variant": "#464554",
+                      "on-primary-container": "#0d0096",
+                      "error-container": "#93000a",
+                      "on-secondary": "#490080",
+                      "primary-fixed": "#e1e0ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "xl": "40px",
+                      "md": "16px",
+                      "container-max": "1440px",
+                      "gutter": "20px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "mono-code": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-base": [
+                              "Inter"
+                      ],
+                      "mono-label": [
+                              "JetBrains Mono"
+                      ],
+                      "mono-data": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "mono-code": [
+                              "12px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-base": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-label": [
+                              "13px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "mono-data": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        /* Custom styles for grid and layering not fully covered by tokens */
+        .glass-panel {
+            background: rgba(26, 30, 42, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #2D3343;
+        }
+        
+        .code-grid-bg {
+            background-image: 
+                linear-gradient(to right, #1A1E2A 1px, transparent 1px),
+                linear-gradient(to bottom, #1A1E2A 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-position: center center;
+            opacity: 0.3;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(to right, #c0c1ff, #ddb7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-[-1] pointer-events-none">
+<div class="absolute inset-0 code-grid-bg"></div>
+<div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px]"></div>
+</div>
+<!-- Header Navigation Shell (Suppressed Nav Links due to Signed-out/Transactional Intent, kept brand and actions) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg py-sm h-16 border-b border-outline-variant bg-background/80 backdrop-blur-md">
+<div class="flex items-center gap-md">
+<span class="font-display-lg text-display-lg font-black text-primary tracking-tighter">IssueMatch AI</span>
+<div class="hidden md:flex items-center gap-xs px-sm py-xs rounded-full bg-surface-container border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-mono-label text-mono-label text-on-surface-variant">All systems operational</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors duration-200 px-lg py-sm rounded font-mono-label text-mono-label">
+                Sign in
+            </button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[120px] pb-xl flex flex-col items-center w-full max-w-container-max mx-auto px-gutter">
+<!-- Hero Section -->
+<section class="w-full max-w-[900px] flex flex-col items-center text-center gap-lg mb-[100px]">
+<div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-surface-container border border-outline-variant mb-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">terminal</span>
+</div>
+<h1 class="font-display-lg text-display-lg lg:text-[56px] lg:leading-[64px] font-black text-on-surface tracking-tighter max-w-[800px]">
+                Know exactly which issue is <span class="gradient-text">safe to touch</span> — before you touch it.
+            </h1>
+<p class="font-body-base text-body-base lg:text-[20px] lg:leading-[32px] text-on-surface-variant max-w-[700px]">
+                IssueMatch AI matches you to open-source issues you can actually handle, and proves it with static analysis — not a guess, not an LLM.
+            </p>
+<div class="mt-md flex flex-col sm:flex-row gap-md">
+<button class="bg-primary text-on-primary hover:bg-primary-container transition-colors duration-200 px-xl py-md rounded-lg font-mono-label text-mono-label flex items-center gap-sm shadow-[0_0_20px_rgba(192,193,255,0.2)]">
+                    Sign in with GitHub
+                </button>
+<button class="bg-transparent border border-outline-variant text-on-surface hover:bg-surface-container transition-colors duration-200 px-xl py-md rounded-lg font-mono-label text-mono-label">
+                    View Technical Docs
+                </button>
+</div>
+<!-- Terminal Mockup Illustration -->
+<div class="w-full mt-xl rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+<div class="flex items-center px-md py-sm bg-surface-container border-b border-outline-variant gap-sm">
+<div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+<div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+<div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+<span class="ml-sm font-mono-code text-mono-code text-on-surface-variant">issuematch-engine-v2.4.0</span>
+</div>
+<div class="p-lg font-mono-code text-mono-code text-left overflow-x-auto text-on-surface-variant leading-loose">
+<div class="text-tertiary">➜ <span class="text-primary">analyze</span> target_repository="vercel/next.js"</div>
+<div>[INFO] Establishing local sentence embeddings...</div>
+<div>[INFO] Parsing AST with tree-sitter...</div>
+<div>[INFO] Calculating call-graph fan-in...</div>
+<div class="text-tertiary mt-sm">➜ <span class="text-primary">match_results</span></div>
+<div class="flex justify-between border-b border-outline-variant/30 pb-xs mt-xs">
+<span class="text-on-surface">Issue #4219: Improve caching logic</span>
+<span class="text-secondary">Confidence: 94%</span>
+</div>
+<div class="flex gap-md mt-xs pl-md border-l-2 border-outline-variant/30">
+<span>Fan-in: <span class="text-tertiary">Low (12)</span></span>
+<span>Complexity: <span class="text-tertiary">O(n)</span></span>
+<span>Churn: <span class="text-primary">Stable</span></span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3-Column Feature Grid (Bento Style) -->
+<section class="w-full max-w-[1200px] mb-xl">
+<h2 class="font-headline-md text-headline-md font-bold mb-lg text-on-surface">System Architecture</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- Feature 1 -->
+<div class="glass-panel p-lg rounded-xl flex flex-col gap-sm hover:border-primary/40 transition-colors duration-300">
+<div class="font-mono-label text-mono-label text-primary mb-xs">01 // CORE</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Blast Radius Engine</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-sm">
+                        Real tree-sitter parsing, call-graph fan-in, cyclomatic complexity, test proximity, and git churn — combined into one transparent score per function.
+                    </p>
+<div class="mt-auto pt-md flex items-end gap-xs h-[60px]">
+<div class="w-1/3 bg-surface-variant h-full rounded-t-sm"></div>
+<div class="w-1/3 bg-tertiary h-[60%] rounded-t-sm"></div>
+<div class="w-1/3 bg-surface-variant h-[30%] rounded-t-sm"></div>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="glass-panel p-lg rounded-xl flex flex-col gap-sm hover:border-primary/40 transition-colors duration-300">
+<div class="font-mono-label text-mono-label text-secondary mb-xs">02 // ALIGNMENT</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Skill-matched issues</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-sm">
+                        Local sentence embeddings rank open issues against your skills. Every match shows the overlapping terms that drove it.
+                    </p>
+<div class="mt-auto pt-md flex flex-wrap gap-xs">
+<span class="px-sm py-xs bg-surface-container rounded border border-outline-variant font-mono-code text-mono-code text-on-surface-variant">React</span>
+<span class="px-sm py-xs bg-secondary/20 rounded border border-secondary/30 font-mono-code text-mono-code text-secondary">Hooks</span>
+<span class="px-sm py-xs bg-surface-container rounded border border-outline-variant font-mono-code text-mono-code text-on-surface-variant">TypeScript</span>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="glass-panel p-lg rounded-xl flex flex-col gap-sm hover:border-primary/40 transition-colors duration-300">
+<div class="font-mono-label text-mono-label text-tertiary mb-xs">03 // EXECUTION</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Zero external AI</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-sm">
+                        No LLM calls, no hosted inference, no API key. Every number on screen is computed live, in this process, and is fully inspectable.
+                    </p>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline-variant/30">
+<span class="font-mono-code text-mono-code text-on-surface-variant">Local Compute</span>
+<span class="font-mono-code text-mono-code text-tertiary">100%</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-lg px-xl flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant mt-xl bg-background">
+<div class="flex items-center gap-sm mb-md md:mb-0">
+<span class="font-display-lg text-primary text-[20px]">IssueMatch AI</span>
+<span class="text-on-surface-variant font-mono-code text-mono-code">© 2024 IssueMatch AI v2.4.0</span>
+</div>
+<nav class="flex gap-lg">
+<a class="text-on-surface-variant font-mono-label text-mono-label hover:text-tertiary underline opacity-80 hover:opacity-100 transition-opacity" href="#">Terms</a>
+<a class="text-on-surface-variant font-mono-label text-mono-label hover:text-tertiary underline opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy</a>
+<a class="text-on-surface-variant font-mono-label text-mono-label hover:text-tertiary underline opacity-80 hover:opacity-100 transition-opacity" href="#">Security</a>
+<a class="text-on-surface-variant font-mono-label text-mono-label hover:text-tertiary underline opacity-80 hover:opacity-100 transition-opacity" href="#">Contact</a>
+</nav>
+</footer>
+</body></html>

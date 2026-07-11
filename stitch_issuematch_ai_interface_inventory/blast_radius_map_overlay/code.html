@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IssueMatch AI - Blast Radius</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Node interaction styles */
+        .node {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .node:hover {
+            filter: brightness(1.3);
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+        .edge {
+            transition: stroke-opacity 0.2s ease;
+        }
+        .node:hover ~ .edge, .edge:hover {
+            stroke-opacity: 0.8;
+            stroke-width: 2px;
+        }
+
+        /* Tooltip */
+        #tooltip {
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#003640",
+                    "primary": "#c0c1ff",
+                    "surface-container-highest": "#33353a",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed-variant": "#004e5c",
+                    "tertiary-container": "#009eb9",
+                    "surface-bright": "#37393f",
+                    "background": "#111318",
+                    "on-secondary-container": "#d6a9ff",
+                    "on-secondary-fixed": "#2c0051",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "on-secondary-fixed-variant": "#6900b3",
+                    "outline": "#908fa0",
+                    "on-surface-variant": "#c7c4d7",
+                    "secondary-container": "#6f00be",
+                    "secondary-fixed": "#f0dbff",
+                    "surface-container": "#1e1f25",
+                    "surface-variant": "#33353a",
+                    "secondary": "#ddb7ff",
+                    "tertiary-fixed-dim": "#4cd7f6",
+                    "surface-container-lowest": "#0c0e13",
+                    "on-background": "#e2e2e9",
+                    "on-surface": "#e2e2e9",
+                    "on-tertiary-fixed": "#001f26",
+                    "inverse-on-surface": "#2e3036",
+                    "inverse-surface": "#e2e2e9",
+                    "surface-dim": "#111318",
+                    "error": "#ffb4ab",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed": "#07006c",
+                    "surface": "#111318",
+                    "surface-container-low": "#1a1b21",
+                    "on-primary": "#1000a9",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "tertiary": "#4cd7f6",
+                    "inverse-primary": "#494bd6",
+                    "surface-container-high": "#282a2f",
+                    "surface-tint": "#c0c1ff",
+                    "on-tertiary-container": "#002f38",
+                    "secondary-fixed-dim": "#ddb7ff",
+                    "tertiary-fixed": "#acedff",
+                    "primary-container": "#8083ff",
+                    "outline-variant": "#464554",
+                    "on-primary-container": "#0d0096",
+                    "error-container": "#93000a",
+                    "on-secondary": "#490080",
+                    "primary-fixed": "#e1e0ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "xl": "40px",
+                    "md": "16px",
+                    "container-max": "1440px",
+                    "gutter": "20px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "mono-code": ["JetBrains Mono"],
+                    "display-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-base": ["Inter"],
+                    "mono-label": ["JetBrains Mono"],
+                    "mono-data": ["JetBrains Mono"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "mono-code": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "mono-label": ["13px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface antialiased w-full h-screen overflow-hidden">
+<!-- Dimmed Workspace Background Overlay -->
+<!-- Nav components are suppressed as this is a focused, task-oriented modal overlay -->
+<div class="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 flex items-center justify-center p-lg md:p-xl">
+<!-- Modal Container -->
+<div class="relative w-full max-w-[1000px] h-[870px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex items-start justify-between px-lg py-md border-b border-outline-variant bg-surface-container-low shrink-0">
+<div class="flex flex-col gap-sm">
+<h1 class="font-headline-md text-headline-md text-primary">Blast Radius Map</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl">
+                        Real transitive dependents, traced through the actual call graph — each ring is one more hop away. Click a node to re-center the map on it.
+                    </p>
+</div>
+<button aria-label="Close" class="p-sm text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-variant">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</header>
+<!-- Status Bar / Summary -->
+<div class="px-lg py-md bg-error-container/10 border-b border-error/20 shrink-0 flex items-center gap-md">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+<span class="font-mono-label text-mono-label text-error">
+                    14 functions transitively depend on parse_config — everything shown here could break if it changes.
+                </span>
+</div>
+<!-- Graph Canvas -->
+<div class="relative flex-1 w-full bg-[#0A0C11] overflow-hidden group" id="graph-container">
+<!-- Decorative background elements -->
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/5 to-transparent pointer-events-none"></div>
+<!-- SVG Graph -->
+<svg class="w-full h-full" preserveaspectratio="xMidYMid meet" viewbox="0 0 800 600">
+<defs>
+<lineargradient id="edge-gradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#464554" stop-opacity="0.6"></stop>
+<stop offset="100%" stop-color="#464554" stop-opacity="0.1"></stop>
+</lineargradient>
+</defs>
+<!-- Concentric Rings (Hops) -->
+<circle class="stroke-outline-variant opacity-20" cx="400" cy="300" fill="none" r="100" stroke-dasharray="4 4" stroke-width="1"></circle>
+<circle class="stroke-outline-variant opacity-15" cx="400" cy="300" fill="none" r="200" stroke-dasharray="4 4" stroke-width="1"></circle>
+<circle class="stroke-outline-variant opacity-10" cx="400" cy="300" fill="none" r="280" stroke-dasharray="4 4" stroke-width="1"></circle>
+<!-- Ring Labels -->
+<text class="font-mono-code text-[10px]" fill="#908fa0" text-anchor="middle" x="400" y="195">Hop 1</text>
+<text class="font-mono-code text-[10px]" fill="#908fa0" text-anchor="middle" x="400" y="95">Hop 2</text>
+<text class="font-mono-code text-[10px]" fill="#908fa0" text-anchor="middle" x="400" y="15">Hop 3</text>
+<!-- Edges (Paths between nodes) -->
+<g class="edges" fill="none" stroke="url(#edge-gradient)" stroke-width="1">
+<!-- Center to Hop 1 -->
+<path class="edge" d="M400,300 L470,230"></path>
+<path class="edge" d="M400,300 L320,240"></path>
+<path class="edge" d="M400,300 L380,390"></path>
+<path class="edge" d="M400,300 L480,350"></path>
+<!-- Hop 1 to Hop 2 -->
+<path class="edge" d="M470,230 L550,150"></path>
+<path class="edge" d="M470,230 L580,220"></path>
+<path class="edge" d="M320,240 L220,180"></path>
+<path class="edge" d="M320,240 L180,260"></path>
+<path class="edge" d="M380,390 L350,480"></path>
+<path class="edge" d="M480,350 L560,420"></path>
+<path class="edge" d="M480,350 L590,320"></path>
+<!-- Hop 2 to Hop 3 -->
+<path class="edge" d="M550,150 L630,80"></path>
+<path class="edge" d="M220,180 L140,110"></path>
+<path class="edge" d="M590,320 L670,300"></path>
+</g>
+<!-- Nodes -->
+<g class="nodes">
+<!-- Central Node (parse_config) -->
+<circle class="node fill-primary stroke-background" cx="400" cy="300" data-file="core/parser.ts:parse_config" data-hops="0" data-score="100" data-status="critical" r="12" stroke-width="3"></circle>
+<text class="font-mono-code text-[11px]" fill="#e2e2e9" text-anchor="middle" x="400" y="325">parse_config</text>
+<!-- Hop 1 (High Risk - Red/Error) -->
+<circle class="node fill-error stroke-background" cx="470" cy="230" data-file="api/loader.ts:load_deps" data-hops="1" data-score="85" data-status="danger" r="8" stroke-width="2"></circle>
+<text class="font-mono-code text-[10px]" fill="#c7c4d7" text-anchor="middle" x="470" y="250">load_deps</text>
+<circle class="node fill-error stroke-background" cx="320" cy="240" data-file="utils/config_mapper.ts:map_env" data-hops="1" data-score="92" data-status="danger" r="8" stroke-width="2"></circle>
+<text class="font-mono-code text-[10px]" fill="#c7c4d7" text-anchor="middle" x="320" y="260">map_env</text>
+<circle class="node fill-error-container stroke-background" cx="380" cy="390" data-file="auth/validator.ts:validate_rules" data-hops="1" data-score="78" data-status="danger" r="8" stroke-width="2"></circle>
+<text class="font-mono-code text-[10px]" fill="#c7c4d7" text-anchor="middle" x="380" y="410">validate_rules</text>
+<circle class="node fill-tertiary stroke-background" cx="480" cy="350" data-file="tests/parser.spec.ts" data-hops="1" data-score="12" data-status="safe" r="8" stroke-width="2"></circle>
+<!-- Hop 2 (Mixed Risk) -->
+<circle class="node fill-error-container stroke-background" cx="550" cy="150" data-file="api/routes.ts:init_routes" data-hops="2" data-score="65" data-status="danger" r="6" stroke-width="2"></circle>
+<circle class="node fill-tertiary-container stroke-background" cx="580" cy="220" data-file="workers/cache.ts:update" data-hops="2" data-score="30" data-status="safe" r="6" stroke-width="2"></circle>
+<circle class="node fill-error-container stroke-background" cx="220" cy="180" data-file="cli/start.ts:bootstrap" data-hops="2" data-score="70" data-status="danger" r="6" stroke-width="2"></circle>
+<circle class="node fill-tertiary-container stroke-background" cx="180" cy="260" data-file="docs/generator.ts" data-hops="2" data-score="5" data-status="safe" r="6" stroke-width="2"></circle>
+<circle class="node fill-tertiary-container stroke-background" cx="350" cy="480" data-file="ui/components/Rules.tsx" data-hops="2" data-score="15" data-status="safe" r="6" stroke-width="2"></circle>
+<circle class="node fill-tertiary-container stroke-background" cx="560" cy="420" data-file="ci/test_runner.sh" data-hops="2" data-score="2" data-status="safe" r="6" stroke-width="2"></circle>
+<circle class="node fill-error-container stroke-background" cx="590" cy="320" data-file="metrics/aggregator.ts" data-hops="2" data-score="45" data-status="danger" r="6" stroke-width="2"></circle>
+<!-- Hop 3 (Low Risk - mostly safe/green) -->
+<circle class="node fill-tertiary stroke-background" cx="630" cy="80" data-file="server/main.ts" data-hops="3" data-score="8" data-status="safe" r="4" stroke-width="1.5"></circle>
+<circle class="node fill-tertiary stroke-background" cx="140" cy="110" data-file="cli/index.ts" data-hops="3" data-score="10" data-status="safe" r="4" stroke-width="1.5"></circle>
+<circle class="node fill-tertiary stroke-background" cx="670" cy="300" data-file="dashboard/view.tsx" data-hops="3" data-score="12" data-status="safe" r="4" stroke-width="1.5"></circle>
+</g>
+</svg>
+<!-- Custom Interactive Tooltip -->
+<div class="absolute top-0 left-0 bg-surface-container shadow-lg border border-outline-variant rounded p-sm opacity-0 flex flex-col gap-xs z-50 min-w-[200px] transform -translate-x-1/2 -translate-y-full mt-[-10px]" id="tooltip">
+<div class="flex items-center gap-xs mb-xs">
+<span class="material-symbols-outlined text-primary text-[14px]" data-icon="description">description</span>
+<span class="font-mono-label text-mono-label text-on-surface break-all" id="tt-file">filename.ts</span>
+</div>
+<div class="flex justify-between items-center border-t border-surface-variant pt-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Impact Score</span>
+<span class="font-mono-data text-mono-data text-error" id="tt-score">92</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Distance</span>
+<span class="font-mono-data text-mono-data text-on-surface" id="tt-hops">1 Hop</span>
+</div>
+</div>
+</div>
+<!-- Legend Footer -->
+<footer class="px-lg py-sm border-t border-outline-variant bg-surface-container-low shrink-0 flex items-center justify-between">
+<div class="flex gap-lg">
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">Origin Node</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">High Impact</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">Safe / Low Impact</span>
+</div>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="pan_tool">pan_tool</span>
+<span class="font-mono-label text-mono-label">Drag to pan, scroll to zoom</span>
+</div>
+</footer>
+</div>
+</div>
+<!-- Inline script for tooltip interactions -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const nodes = document.querySelectorAll('.node');
+            const tooltip = document.getElementById('tooltip');
+            const container = document.getElementById('graph-container');
+            
+            const ttFile = document.getElementById('tt-file');
+            const ttScore = document.getElementById('tt-score');
+            const ttHops = document.getElementById('tt-hops');
+
+            nodes.forEach(node => {
+                node.addEventListener('mouseenter', (e) => {
+                    const rect = container.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    // Populate data
+                    ttFile.textContent = node.getAttribute('data-file');
+                    const score = node.getAttribute('data-score');
+                    ttScore.textContent = score;
+                    ttHops.textContent = `${node.getAttribute('data-hops')} Hops`;
+
+                    // Style score based on status
+                    const status = node.getAttribute('data-status');
+                    ttScore.className = `font-mono-data text-mono-data ${status === 'danger' ? 'text-error' : status === 'safe' ? 'text-tertiary' : 'text-primary'}`;
+
+                    // Position tooltip
+                    tooltip.style.left = `${x}px`;
+                    tooltip.style.top = `${y}px`;
+                    tooltip.style.opacity = '1';
+                });
+
+                node.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+            });
+        });
+    </script>
+</body></html>

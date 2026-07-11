@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IssueMatch AI - First Match Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#acedff",
+                        "on-secondary-container": "#d6a9ff",
+                        "tertiary": "#4cd7f6",
+                        "on-tertiary-fixed": "#001f26",
+                        "outline-variant": "#464554",
+                        "primary": "#c0c1ff",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "inverse-surface": "#e2e2e9",
+                        "surface-container-highest": "#33353a",
+                        "surface-container-high": "#282a2f",
+                        "secondary-fixed": "#f0dbff",
+                        "on-primary-fixed": "#07006c",
+                        "surface-container-low": "#1a1b21",
+                        "on-tertiary-container": "#002f38",
+                        "on-surface-variant": "#c7c4d7",
+                        "surface-container-lowest": "#0c0e13",
+                        "background": "#111318",
+                        "on-error": "#690005",
+                        "on-background": "#e2e2e9",
+                        "secondary": "#ddb7ff",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "surface-bright": "#37393f",
+                        "tertiary-fixed-dim": "#4cd7f6",
+                        "inverse-primary": "#494bd6",
+                        "surface-dim": "#111318",
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#2e3036",
+                        "surface-container": "#1e1f25",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-surface": "#e2e2e9",
+                        "surface": "#111318",
+                        "primary-container": "#8083ff",
+                        "on-tertiary": "#003640",
+                        "on-primary-container": "#0d0096",
+                        "tertiary-container": "#009eb9",
+                        "primary-fixed": "#e1e0ff",
+                        "on-secondary-fixed": "#2c0051",
+                        "on-primary": "#1000a9",
+                        "secondary-container": "#6f00be",
+                        "on-secondary": "#490080",
+                        "surface-tint": "#c0c1ff",
+                        "surface-variant": "#33353a",
+                        "error": "#ffb4ab",
+                        "outline": "#908fa0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "40px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "container-max": "1440px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-base": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-label": ["JetBrains Mono"],
+                        "mono-data": ["JetBrains Mono"],
+                        "mono-code": ["JetBrains Mono"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-label": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "mono-data": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-code": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .noise-bg {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+        .etched-border {
+            border: 1px solid #2D3343;
+        }
+        .etched-border:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        
+        /* Step Transitions */
+        .step-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .step-content.active {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Range Slider */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #6366F1;
+            cursor: pointer;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #6366F1;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-base selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar (Linear intent - No Navigation Links rendered, just Brand and basic actions) -->
+<header class="border-b border-outline-variant bg-background/80 backdrop-blur-md w-full px-lg py-sm h-16 flex justify-between items-center fixed top-0 left-0 z-50">
+<div class="flex items-center gap-sm">
+<span class="font-display-lg text-display-lg font-black text-primary tracking-tighter">IssueMatch AI</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant ml-sm px-sm py-1 bg-surface-container-low rounded">ONBOARDING</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="font-mono-label text-mono-label text-on-surface-variant hover:text-primary transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+                Sign Out
+            </button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow pt-24 pb-xl px-md lg:px-xl flex justify-center items-start noise-bg relative">
+<div class="w-full max-w-4xl mt-lg relative z-10">
+<!-- Stepper Header -->
+<div class="mb-xl flex justify-between items-center relative">
+<!-- Progress Line Background -->
+<div class="absolute top-1/2 left-0 w-full h-[1px] bg-outline-variant -z-10 transform -translate-y-1/2"></div>
+<!-- Active Progress Line -->
+<div class="absolute top-1/2 left-0 h-[1px] bg-primary -z-10 transform -translate-y-1/2 transition-all duration-500 w-0" id="progress-bar"></div>
+<!-- Step 1 Indicator -->
+<div class="flex flex-col items-center gap-sm bg-background px-sm">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-mono-label text-mono-label shadow-[0_0_12px_rgba(192,193,255,0.3)] transition-colors" id="indicator-1">
+                        1
+                    </div>
+<span class="font-mono-label text-mono-label text-primary">Sync Skills</span>
+</div>
+<!-- Step 2 Indicator -->
+<div class="flex flex-col items-center gap-sm bg-background px-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant border border-outline-variant flex items-center justify-center font-mono-label text-mono-label transition-colors" id="indicator-2">
+                        2
+                    </div>
+<span class="font-mono-label text-mono-label text-on-surface-variant" id="label-2">Risk Tolerance</span>
+</div>
+<!-- Step 3 Indicator -->
+<div class="flex flex-col items-center gap-sm bg-background px-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant border border-outline-variant flex items-center justify-center font-mono-label text-mono-label transition-colors" id="indicator-3">
+                        3
+                    </div>
+<span class="font-mono-label text-mono-label text-on-surface-variant" id="label-3">First Match</span>
+</div>
+</div>
+<!-- Content Area -->
+<div class="bg-[#1A1E2A] etched-border rounded-xl p-lg lg:p-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+<!-- STEP 1: Sync GitHub Skills -->
+<div class="step-content active" id="step-1">
+<div class="flex flex-col md:flex-row gap-xl items-start">
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm">Initialize Skill Matrix</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mb-lg">We need to map your technical capabilities to accurately score issue readiness. Import your language statistics directly from GitHub to seed the model.</p>
+<div class="bg-surface-container-low rounded-lg p-md border border-outline-variant mb-lg">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+<span class="font-mono-label text-mono-label text-on-surface">@dev_user</span>
+</div>
+<span class="font-mono-code text-mono-code text-tertiary">Connected</span>
+</div>
+<button class="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded py-sm px-md font-mono-label text-mono-label transition-colors flex items-center justify-center gap-sm" id="sync-btn">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">sync</span>
+                                    Run Telemetry Sync
+                                </button>
+</div>
+<!-- Mock Results (hidden initially) -->
+<div class="hidden flex-wrap gap-sm" id="sync-results">
+<span class="px-sm py-1 rounded bg-surface-variant text-on-surface font-mono-code text-mono-code border border-outline-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-[#f1e05a]"></span> JavaScript
+                                </span>
+<span class="px-sm py-1 rounded bg-surface-variant text-on-surface font-mono-code text-mono-code border border-outline-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-[#3178c6]"></span> TypeScript
+                                </span>
+<span class="px-sm py-1 rounded bg-surface-variant text-on-surface font-mono-code text-mono-code border border-outline-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-[#e34c26]"></span> HTML
+                                </span>
+<span class="px-sm py-1 rounded bg-surface-variant text-on-surface font-mono-code text-mono-code border border-outline-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-[#3572A5]"></span> Python
+                                </span>
+</div>
+</div>
+<!-- Visual Element -->
+<div class="w-full md:w-1/3 flex items-center justify-center bg-surface-container-lowest rounded-lg border border-outline-variant p-lg aspect-square relative overflow-hidden">
+<!-- Subtle grid background for tech feel -->
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#464554 1px, transparent 1px); background-size: 16px 16px;"></div>
+<span class="material-symbols-outlined text-6xl text-outline-variant relative z-10 opacity-50" id="sync-icon">cloud_sync</span>
+</div>
+</div>
+<div class="mt-xl flex justify-end border-t border-outline-variant pt-lg">
+<button class="bg-[#6366F1] hover:bg-[#4f46e5] text-white px-lg py-sm rounded font-mono-label text-mono-label transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled="" id="btn-next-1" onclick="nextStep(2)">
+                            Configure Parameters →
+                        </button>
+</div>
+</div>
+<!-- STEP 2: Risk Tolerance -->
+<div class="step-content" id="step-2">
+<div class="max-w-2xl mx-auto">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm text-center">Set Engagement Parameters</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mb-xl text-center">Adjusting risk tolerance alters the 'Readiness Gauge' threshold. High tolerance suggests complex, undocumented issues. Low tolerance favors "Good First Issues."</p>
+<div class="bg-surface-container-low rounded-lg p-lg border border-outline-variant mb-lg relative">
+<div class="flex justify-between items-end mb-md">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Complexity Index Limit</span>
+<span class="font-mono-data text-mono-data text-primary text-xl" id="risk-value">0.45</span>
+</div>
+<!-- Slider -->
+<input class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer outline-none" id="risk-slider" max="0.9" min="0.1" step="0.05" type="range" value="0.45"/>
+<div class="flex justify-between items-center mt-sm font-mono-code text-mono-code text-outline">
+<span>Conservative (0.1)</span>
+<span>Aggressive (0.9)</span>
+</div>
+</div>
+<!-- Impact Preview Card -->
+<div class="bg-[#1A1E2A] border border-outline-variant rounded-lg p-md">
+<h3 class="font-mono-label text-mono-label text-on-surface mb-sm">Expected Issue Profile</h3>
+<div class="flex items-center gap-md">
+<div class="w-16 h-16 rounded-full border border-outline-variant flex items-center justify-center relative">
+<!-- Mock Gauge -->
+<svg class="w-14 h-14 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-variant" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-primary transition-all duration-300" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" id="gauge-fill" stroke="currentColor" stroke-dasharray="75, 100" stroke-width="3"></path>
+</svg>
+<span class="absolute font-mono-data text-mono-data text-xs text-on-surface" id="gauge-text">75%</span>
+</div>
+<div class="flex flex-col gap-xs flex-1">
+<div class="flex justify-between text-xs">
+<span class="text-on-surface-variant font-mono-code">Typ. Complexity</span>
+<span class="text-tertiary font-mono-code" id="stat-complex">Medium</span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded overflow-hidden">
+<div class="bg-tertiary h-full w-1/2 transition-all" id="bar-complex"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-xl flex justify-between border-t border-outline-variant pt-lg">
+<button class="bg-transparent hover:bg-surface-container-low border border-[#2D3343] text-on-surface px-lg py-sm rounded font-mono-label text-mono-label transition-colors" onclick="nextStep(1)">
+                            ← Back
+                        </button>
+<button class="bg-[#6366F1] hover:bg-[#4f46e5] text-white px-lg py-sm rounded font-mono-label text-mono-label transition-colors" onclick="nextStep(3)">
+                            Initialize Analysis →
+                        </button>
+</div>
+</div>
+<!-- STEP 3: First Match Analysis -->
+<div class="step-content" id="step-3">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm">Target Acquisition</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mb-lg">Select a repository ecosystem to scan against your newly generated skill matrix.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
+<!-- Target Option 1 -->
+<div class="bg-surface-container-low border border-outline-variant hover:border-primary/40 rounded-lg p-md cursor-pointer transition-all hover:bg-surface-container-high group" onclick="selectRepo(this)">
+<div class="flex items-start justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded bg-background flex items-center justify-center border border-outline-variant">
+<span class="font-mono-data text-mono-data font-bold">V</span>
+</div>
+<div>
+<div class="font-mono-label text-mono-label text-on-surface">vercel/next.js</div>
+<div class="font-mono-code text-mono-code text-on-surface-variant text-xs">React Framework</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary">radio_button_unchecked</span>
+</div>
+<div class="flex gap-sm">
+<span class="px-2 py-0.5 rounded-full bg-surface-variant text-[10px] font-mono-code text-on-surface-variant">TypeScript</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-variant text-[10px] font-mono-code text-on-surface-variant">High Volume</span>
+</div>
+</div>
+<!-- Target Option 2 -->
+<div class="bg-surface-container-low border border-outline-variant hover:border-primary/40 rounded-lg p-md cursor-pointer transition-all hover:bg-surface-container-high group" onclick="selectRepo(this)">
+<div class="flex items-start justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded bg-background flex items-center justify-center border border-outline-variant">
+<span class="font-mono-data text-mono-data font-bold">P</span>
+</div>
+<div>
+<div class="font-mono-label text-mono-label text-on-surface">pallets/itsdangerous</div>
+<div class="font-mono-code text-mono-code text-on-surface-variant text-xs">Data Passing</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary">radio_button_unchecked</span>
+</div>
+<div class="flex gap-sm">
+<span class="px-2 py-0.5 rounded-full bg-surface-variant text-[10px] font-mono-code text-on-surface-variant">Python</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-variant text-[10px] font-mono-code text-on-surface-variant">Core Lib</span>
+</div>
+</div>
+</div>
+<!-- Scan Action Area (Hidden until repo selected) -->
+<div class="hidden flex flex-col items-center justify-center py-lg border border-dashed border-outline-variant rounded-lg bg-surface-container-lowest" id="scan-action">
+<button class="bg-[#6366F1] hover:bg-[#4f46e5] text-white px-xl py-md rounded font-mono-label text-mono-label transition-all transform hover:scale-105 flex items-center gap-sm shadow-[0_0_20px_rgba(99,102,241,0.4)]">
+<span class="material-symbols-outlined text-[20px]">radar</span>
+                            Commence Scan
+                        </button>
+<p class="font-mono-code text-mono-code text-on-surface-variant mt-sm">Estimated processing time: 1.4s</p>
+</div>
+<div class="mt-xl flex justify-between border-t border-outline-variant pt-lg">
+<button class="bg-transparent hover:bg-surface-container-low border border-[#2D3343] text-on-surface px-lg py-sm rounded font-mono-label text-mono-label transition-colors" onclick="nextStep(2)">
+                            ← Back
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-lg px-xl flex justify-between items-center max-w-container-max mx-auto border-t border-outline-variant mt-xl bg-background">
+<div class="font-display-lg text-primary text-xl font-bold tracking-tighter">IssueMatch AI</div>
+<div class="flex gap-lg">
+<span class="font-mono-label text-mono-label text-on-surface-variant text-xs">© 2024 IssueMatch AI v2.4.0</span>
+</div>
+</footer>
+<script>
+        // Micro-interactions and flow logic
+        
+        // Step 1: Sync Simulation
+        const syncBtn = document.getElementById('sync-btn');
+        const syncResults = document.getElementById('sync-results');
+        const btnNext1 = document.getElementById('btn-next-1');
+        const syncIcon = document.getElementById('sync-icon');
+
+        syncBtn.addEventListener('click', () => {
+            syncBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin" style="font-variation-settings: \'FILL\' 1;">sync</span> Processing...';
+            syncBtn.disabled = true;
+            syncIcon.classList.add('animate-pulse', 'text-primary');
+            syncIcon.classList.remove('text-outline-variant', 'opacity-50');
+
+            setTimeout(() => {
+                syncBtn.classList.add('hidden');
+                syncResults.classList.remove('hidden');
+                syncResults.classList.add('flex');
+                btnNext1.disabled = false;
+                syncIcon.classList.remove('animate-pulse');
+                syncIcon.innerText = 'check_circle';
+                
+                // Add a subtle particle effect or flash here ideally
+            }, 1500);
+        });
+
+        // Step 2: Slider Logic
+        const slider = document.getElementById('risk-slider');
+        const riskValue = document.getElementById('risk-value');
+        const gaugeFill = document.getElementById('gauge-fill');
+        const gaugeText = document.getElementById('gauge-text');
+        const statComplex = document.getElementById('stat-complex');
+        const barComplex = document.getElementById('bar-complex');
+
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value).toFixed(2);
+            riskValue.innerText = val;
+            
+            // Map 0.1-0.9 to 95% - 40% readiness (inversely proportional roughly)
+            const simulatedReadiness = Math.round(95 - ((val - 0.1) * 68.75)); 
+            gaugeText.innerText = `${simulatedReadiness}%`;
+            gaugeFill.setAttribute('stroke-dasharray', `${simulatedReadiness}, 100`);
+
+            // Update stats
+            if(val < 0.3) {
+                statComplex.innerText = 'Low';
+                statComplex.className = 'text-emerald-400 font-mono-code';
+                barComplex.className = 'bg-emerald-400 h-full w-1/4 transition-all';
+            } else if (val < 0.7) {
+                statComplex.innerText = 'Medium';
+                statComplex.className = 'text-tertiary font-mono-code';
+                barComplex.className = 'bg-tertiary h-full w-1/2 transition-all';
+            } else {
+                statComplex.innerText = 'High';
+                statComplex.className = 'text-rose-400 font-mono-code';
+                barComplex.className = 'bg-rose-400 h-full w-3/4 transition-all';
+            }
+        });
+
+        // Step 3: Selection Logic
+        function selectRepo(element) {
+            // Reset others
+            document.querySelectorAll('#step-3 .group').forEach(el => {
+                el.classList.remove('border-primary', 'bg-surface-container-high');
+                el.querySelector('.material-symbols-outlined').innerText = 'radio_button_unchecked';
+                el.querySelector('.material-symbols-outlined').classList.remove('text-primary');
+            });
+            
+            // Set active
+            element.classList.add('border-primary', 'bg-surface-container-high');
+            element.querySelector('.material-symbols-outlined').innerText = 'radio_button_checked';
+            element.querySelector('.material-symbols-outlined').classList.add('text-primary');
+
+            // Show scan button
+            document.getElementById('scan-action').classList.remove('hidden');
+            // scroll slightly down
+            setTimeout(() => {
+                document.getElementById('scan-action').scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
+        }
+
+
+        // Stepper Navigation
+        function nextStep(stepNum) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            // Show target step
+            document.getElementById(`step-${stepNum}`).classList.add('active');
+
+            // Update Progress Bar
+            const progressMap = {1: '0%', 2: '50%', 3: '100%'};
+            document.getElementById('progress-bar').style.width = progressMap[stepNum];
+
+            // Update Indicators
+            for(let i=1; i<=3; i++) {
+                const ind = document.getElementById(`indicator-${i}`);
+                const lbl = document.getElementById(`label-${i}`);
+                
+                if (i < stepNum) {
+                    // Completed
+                    ind.className = 'w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-mono-label text-mono-label transition-colors';
+                    ind.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span>';
+                    if(lbl) lbl.className = 'font-mono-label text-mono-label text-primary';
+                } else if (i === stepNum) {
+                    // Active
+                    ind.className = 'w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-mono-label text-mono-label shadow-[0_0_12px_rgba(192,193,255,0.3)] transition-colors';
+                    ind.innerHTML = i;
+                    if(lbl) lbl.className = 'font-mono-label text-mono-label text-primary';
+                } else {
+                    // Future
+                    ind.className = 'w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant border border-outline-variant flex items-center justify-center font-mono-label text-mono-label transition-colors';
+                    ind.innerHTML = i;
+                    if(lbl) lbl.className = 'font-mono-label text-mono-label text-on-surface-variant';
+                }
+            }
+        }
+    </script>
+</body></html>

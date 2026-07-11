@@ -4,15 +4,19 @@ import {
   ApiError,
   apiGet,
   apiPostJson,
+  type CurrentUser,
   type FunctionMetric,
   type LabelAccuracy,
   type PrPlaybook,
   type RankedIssuesResponse,
   type RepoAnalysis,
 } from '../lib/api'
+import { useToast } from '../lib/toast'
 import { BlastRadiusMap } from './BlastRadiusMap'
 import { GaugeIcon, LandmarkIcon, RouteIcon, SparklesIcon, TargetIcon } from './Icons'
 import { SectionCard } from './SectionCard'
+import { AnalyzeResultsSkeleton, IssueListSkeleton } from './Skeleton'
+import { SkillProfile } from './SkillProfile'
 
 function parseOwnerRepo(input: string): [string, string] | null {
   let cleaned = input.trim()
@@ -69,14 +73,14 @@ function SignalBar({
       className="flex items-center gap-1.5"
       title={`${label}: ${pct}% of this repo's range`}
     >
-      <span className="w-9 shrink-0 text-[10px] text-text-dim">{label}</span>
+      <span className="w-9 shrink-0 text-xs text-text-dim">{label}</span>
       <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-surface-3">
         <div
           className={`h-full rounded-full ${severityColor(value)}`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="metric w-8 shrink-0 text-right text-[11px] text-text-dim">
+      <span className="metric w-8 shrink-0 text-right text-xs text-text-dim">
         {raw}
       </span>
     </div>
@@ -113,11 +117,11 @@ function BucketSummary({
   ).length
   const dragons = functions.length - startHere
   return (
-    <p className="mt-2 text-sm text-text-dim">
+    <>
       <span className="text-safe">{startHere} Start Here</span>
       {' · '}
       <span className="text-danger">{dragons} Here Be Dragons</span>
-    </p>
+    </>
   )
 }
 
@@ -129,50 +133,14 @@ const BUCKET_FILTERS: { key: BucketFilter; label: string }[] = [
   { key: 'here_be_dragons', label: 'Here Be Dragons' },
 ]
 
-function SkillChips({
-  skills,
-  tone,
-}: {
-  skills: string[]
-  tone: 'neutral' | 'safe' | 'danger'
-}) {
-  const toneClass =
-    tone === 'safe'
-      ? 'bg-safe-bg text-safe'
-      : tone === 'danger'
-        ? 'bg-danger-bg text-danger'
-        : 'bg-surface-2 text-text-bright'
-  if (skills.length === 0) {
-    return <span className="text-xs text-text-dim">none</span>
-  }
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {skills.map((s) => (
-        <span
-          key={s}
-          className={`metric rounded-full px-2 py-0.5 text-xs ${toneClass}`}
-        >
-          {s}
-        </span>
-      ))}
-    </div>
-  )
-}
-
 function ReadinessGauge({ score }: { score: number }) {
   const pct = Math.max(0, Math.min(1, score))
   const radius = 42
   const circumference = 2 * Math.PI * radius
   const offset = circumference * (1 - pct)
-  const colorVar =
-    pct >= 0.66
-      ? 'var(--color-safe)'
-      : pct >= 0.34
-        ? 'var(--color-caution)'
-        : 'var(--color-danger)'
 
   return (
-    <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
+    <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
         <circle
           cx="50"
@@ -187,7 +155,7 @@ function ReadinessGauge({ score }: { score: number }) {
           cy="50"
           r={radius}
           fill="none"
-          stroke={colorVar}
+          stroke="var(--color-accent-bright)"
           strokeWidth="8"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -195,8 +163,8 @@ function ReadinessGauge({ score }: { score: number }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }}
         />
       </svg>
-      <div className="metric absolute text-2xl font-semibold text-text-bright">
-        {Math.round(pct * 100)}
+      <div className="metric absolute text-3xl font-bold text-text-bright">
+        {Math.round(pct * 100)}%
       </div>
     </div>
   )
@@ -215,37 +183,35 @@ function ReadinessCard({ analysis }: { analysis: RepoAnalysis }) {
       icon={<GaugeIcon />}
       title="Your readiness for this repo"
       description="Repo-level, not per-issue — real issue text rarely names the exact files it touches, so this compares your skills against the repo's actual dependency manifests instead of guessing."
-      accent="cyan"
+      accent="violet"
     >
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col items-center gap-4">
         <ReadinessGauge score={readiness_score} />
-        <div className="flex-1">
-          <p className="metric text-xs text-text-dim">
-            0.40 × {skillOverlapRatio.toFixed(2)} (skill overlap) + 0.35 ×{' '}
-            {(1 - avg_blast_radius_score).toFixed(2)} (1 − avg blast radius)
-            {' + '}
-            0.25 × {gapPenalty.toFixed(2)} (gap penalty)
-          </p>
-          <div className="mt-4 flex flex-col gap-2">
-            <div>
-              <span className="text-xs text-text-dim">
-                Required (from manifests)
+        <p className="metric text-center text-xs text-text-dim">
+          0.40 × {skillOverlapRatio.toFixed(2)} (skill overlap) + 0.35 ×{' '}
+          {(1 - avg_blast_radius_score).toFixed(2)} (1 − avg blast radius)
+          {' + '}
+          0.25 × {gapPenalty.toFixed(2)} (gap penalty)
+        </p>
+        <div className="w-full">
+          <div className="metric flex flex-col gap-1.5 text-sm">
+            <div className="flex justify-between border-b border-border pb-1.5">
+              <span className="text-text-dim">Required</span>
+              <span className="text-text-bright">
+                {skill_gap.required.join(', ') || 'none'}
               </span>
-              <div className="mt-1">
-                <SkillChips skills={skill_gap.required} tone="neutral" />
-              </div>
             </div>
-            <div>
-              <span className="text-xs text-text-dim">You have</span>
-              <div className="mt-1">
-                <SkillChips skills={skill_gap.have} tone="safe" />
-              </div>
+            <div className="flex justify-between border-b border-border pb-1.5">
+              <span className="text-text-dim">You have</span>
+              <span className="text-accent-bright">
+                {skill_gap.have.join(', ') || 'none'}
+              </span>
             </div>
-            <div>
-              <span className="text-xs text-text-dim">Gap</span>
-              <div className="mt-1">
-                <SkillChips skills={skill_gap.gap} tone="danger" />
-              </div>
+            <div className="flex justify-between">
+              <span className="text-text-dim">Gap</span>
+              <span className="text-danger">
+                {skill_gap.gap.join(', ') || 'none'}
+              </span>
             </div>
           </div>
         </div>
@@ -309,17 +275,16 @@ function CodebaseLandmarks({ functions }: { functions: FunctionMetric[] }) {
   )
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-1.5">
       {landmarks.map((fn) => (
         <li
           key={fn.id}
-          className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
+          className="flex items-center justify-between gap-3 rounded bg-surface-2 px-3 py-2 transition-colors hover:border-accent/40"
         >
-          <div>
-            <span className="metric text-sm text-text-bright">{fn.name}</span>
-            <span className="metric ml-2 text-xs text-text-dim">{fn.file}</span>
-          </div>
-          <span className="metric shrink-0 text-xs text-text-dim">
+          <span className="metric truncate text-sm text-accent-bright">
+            {fn.name}
+          </span>
+          <span className="metric shrink-0 rounded bg-surface-3 px-1.5 py-0.5 text-xs text-text-dim">
             {fn.fan_in} callers
           </span>
         </li>
@@ -389,21 +354,20 @@ function LabelAccuracyScoreboard({ accuracy }: { accuracy: LabelAccuracy }) {
 }
 
 function CopyButton({ text, label = 'Copy to clipboard' }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false)
+  const toast = useToast()
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    toast.push('Copied to clipboard.', 'success')
   }
 
   return (
     <button
       type="button"
       onClick={handleCopy}
-      className="rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-text-dim transition-colors hover:bg-accent-bg hover:text-accent-bright"
+      className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-text-dim transition-colors hover:bg-accent-bg hover:text-accent-bright"
     >
-      {copied ? 'Copied!' : label}
+      {label}
     </button>
   )
 }
@@ -436,20 +400,20 @@ function ContributorPlaybookPanel({
           </div>
 
           <div className="border-t border-border pt-3">
-            <span className="text-[11px] font-semibold text-text-bright">
+            <span className="text-xs font-semibold text-text-bright">
               Next: from claimed issue to opened PR
             </span>
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] text-text-dim">Suggested branch:</span>
-              <code className="metric rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-text-bright">
+              <span className="text-xs text-text-dim">Suggested branch:</span>
+              <code className="metric rounded bg-surface-2 px-1.5 py-0.5 text-xs text-text-bright">
                 {playbook.branch_name}
               </code>
               <CopyButton text={playbook.branch_name} label="Copy" />
             </div>
 
             {playbook.start_here && (
-              <p className="mt-2 text-[11px] text-text-dim">
+              <p className="mt-2 text-xs text-text-dim">
                 Start at{' '}
                 <span className="metric text-text-bright">
                   {playbook.start_here.function}
@@ -469,10 +433,10 @@ function ContributorPlaybookPanel({
               </p>
             )}
 
-            <p className="mt-2 text-[11px] text-text-dim">{playbook.test_guidance}</p>
+            <p className="mt-2 text-xs text-text-dim">{playbook.test_guidance}</p>
 
             <div className="mt-2 rounded-md border border-border bg-surface-1 p-2">
-              <p className="whitespace-pre-wrap text-[11px] text-text-dim">
+              <p className="whitespace-pre-wrap text-xs text-text-dim">
                 {playbook.pr_description}
               </p>
               <div className="mt-2">
@@ -486,7 +450,7 @@ function ContributorPlaybookPanel({
   )
 }
 
-export function RepoWorkspace() {
+export function RepoWorkspace({ user }: { user: CurrentUser }) {
   const [repoInput, setRepoInput] = useState('')
   const [search, setSearch] = useState('')
   const [bucketFilter, setBucketFilter] = useState<BucketFilter>('all')
@@ -544,11 +508,13 @@ export function RepoWorkspace() {
 
   return (
     <>
+      <div className="grid gap-0 sm:grid-cols-2 sm:items-start sm:gap-x-6">
+      <SkillProfile user={user} />
       <SectionCard
         icon={<TargetIcon />}
         title="Blast Radius Engine — analyze a repo"
         description="Real tree-sitter parse + call graph + cyclomatic complexity + test proximity + git churn, computed live. No AI, no external API — just the repo you name."
-        accent="violet"
+        accent="cyan"
       >
         <form onSubmit={handleSubmit}>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-0 px-3 py-2.5 transition-colors focus-within:border-accent">
@@ -569,7 +535,7 @@ export function RepoWorkspace() {
             <button
               type="submit"
               disabled={analysis.isPending}
-              className="shrink-0 rounded-md bg-accent px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-bright disabled:opacity-50"
+              className="shrink-0 rounded-md bg-accent px-4 py-1.5 text-sm font-medium text-on-accent transition-colors hover:bg-accent-bright disabled:opacity-50"
             >
               {analysis.isPending ? 'Analyzing…' : 'Analyze'}
             </button>
@@ -577,11 +543,14 @@ export function RepoWorkspace() {
         </form>
 
         {analysis.isPending && (
-          <p className="mt-4 text-sm text-text-dim">
-            Cloning, parsing every source file, walking git history, and
-            building the call graph — first-time analysis of a repo can take
-            a little while.
-          </p>
+          <>
+            <p className="mt-4 text-sm text-text-dim">
+              Cloning, parsing every source file, walking git history, and
+              building the call graph — first-time analysis of a repo can
+              take a little while.
+            </p>
+            <AnalyzeResultsSkeleton />
+          </>
         )}
 
         {analysis.isError && (
@@ -594,20 +563,34 @@ export function RepoWorkspace() {
 
         {analysis.isSuccess && (
           <div className="mt-4">
-            <p className="metric text-sm text-text-dim">
-              {analysis.data.repo} @ {analysis.data.commit_sha.slice(0, 7)} —{' '}
-              {analysis.data.file_count} files, {analysis.data.function_count}{' '}
-              functions
-            </p>
-            <BucketSummary
-              functions={analysis.data.functions}
-              threshold={bucketThreshold}
-            />
+            <div className="metric rounded-md border border-border bg-surface-2 p-3 text-xs">
+              <p className="text-text-dim">
+                {analysis.data.repo} @{' '}
+                <span className="text-accent-bright">
+                  {analysis.data.commit_sha.slice(0, 7)}
+                </span>{' '}
+                — {analysis.data.file_count} files, {analysis.data.function_count}{' '}
+                functions
+              </p>
+              <p className="mt-1.5 text-sm">
+                <BucketSummary
+                  functions={analysis.data.functions}
+                  threshold={bucketThreshold}
+                />
+              </p>
+            </div>
 
-            <div className="mt-3 flex items-center gap-3">
-              <span className="shrink-0 text-xs text-text-dim">
-                Risk tolerance
-              </span>
+            <div className="mt-4">
+              <label className="metric flex justify-between text-xs text-text-dim">
+                <span>Risk tolerance</span>
+                <span className="text-accent-bright">
+                  {bucketThreshold < 0.35
+                    ? 'Cautious'
+                    : bucketThreshold > 0.65
+                      ? 'Adventurous'
+                      : 'Balanced'}
+                </span>
+              </label>
               <input
                 type="range"
                 min={0.15}
@@ -615,16 +598,13 @@ export function RepoWorkspace() {
                 step={0.05}
                 value={bucketThreshold}
                 onChange={(e) => setBucketThreshold(Number(e.target.value))}
-                className="h-1.5 w-40 accent-accent"
+                className="mt-1.5 h-1.5 w-full accent-accent"
               />
-              <span className="metric shrink-0 text-xs text-text-dim">
-                {bucketThreshold < 0.35
-                  ? 'Cautious'
-                  : bucketThreshold > 0.65
-                    ? 'Adventurous'
-                    : 'Balanced'}{' '}
-                ({bucketThreshold.toFixed(2)})
-              </span>
+              <div className="metric mt-1 flex justify-between text-xs text-text-dim">
+                <span>Cautious</span>
+                <span>Balanced</span>
+                <span>Adventurous</span>
+              </div>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -661,15 +641,15 @@ export function RepoWorkspace() {
 
             <div
               ref={tableScrollRef}
-              className="mt-3 max-h-[32rem] overflow-y-auto rounded-md border border-border"
+              className="mt-3 max-h-[32rem] overflow-x-auto overflow-y-auto rounded-md border border-border"
             >
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-surface-2 text-text-dim">
                   <tr>
                     <th className="w-40 px-3 py-2 font-medium">Function</th>
                     <th className="w-52 px-3 py-2 font-medium">File</th>
-                    <th className="w-44 px-3 py-2 font-medium">Signals</th>
-                    <th className="w-14 px-3 py-2 font-medium text-right">Test</th>
+                    <th className="w-48 px-3 py-2 font-medium">Signals</th>
+                    <th className="w-16 px-3 py-2 font-medium text-right">Test</th>
                     <th className="w-28 px-3 py-2 font-medium">Bucket</th>
                     <th className="px-3 py-2 font-medium">Why</th>
                   </tr>
@@ -680,7 +660,7 @@ export function RepoWorkspace() {
                       key={fn.id}
                       className="border-t border-border align-top transition-colors hover:bg-surface-2/50"
                     >
-                      <td className="metric truncate px-3 py-2 text-text-bright">
+                      <td className="metric w-40 truncate px-3 py-2 text-text-bright">
                         <button
                           type="button"
                           onClick={() => setMapFunctionId(fn.id)}
@@ -696,22 +676,22 @@ export function RepoWorkspace() {
                         )}
                       </td>
                       <td
-                        className="metric truncate px-3 py-2 text-text-dim"
+                        className="metric w-52 truncate px-3 py-2 text-text-dim"
                         title={`${fn.file}:${fn.start_line}`}
                       >
                         {fn.file}:{fn.start_line}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="w-48 px-3 py-2">
                         <SignalBars fn={fn} />
                       </td>
-                      <td className="metric px-3 py-2 text-right">
+                      <td className="metric w-16 px-3 py-2 text-right">
                         {fn.has_test_coverage ? (
                           <span className="text-safe">yes</span>
                         ) : (
                           <span className="text-text-dim">no</span>
                         )}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="w-28 px-3 py-2">
                         <BucketBadge
                           bucket={computeBucket(fn.blast_radius_score, bucketThreshold)}
                         />
@@ -737,6 +717,7 @@ export function RepoWorkspace() {
           </div>
         )}
       </SectionCard>
+      </div>
 
       {analysis.isSuccess && (
         <SectionCard
@@ -757,7 +738,7 @@ export function RepoWorkspace() {
           icon={<LandmarkIcon />}
           title="Codebase landmarks"
           description="The most depended-on functions in this repo, by fan-in — touch these last, and only with tests running."
-          accent="accent"
+          accent="none"
         >
           <CodebaseLandmarks functions={analysis.data.functions} />
         </SectionCard>
@@ -773,7 +754,10 @@ export function RepoWorkspace() {
       >
 
         {issues.isPending && (
-          <p className="mt-4 text-sm text-text-dim">Ranking open issues…</p>
+          <>
+            <p className="mt-4 text-sm text-text-dim">Ranking open issues…</p>
+            <IssueListSkeleton />
+          </>
         )}
         {issues.isError && (
           <p className="mt-4 text-sm text-danger">
@@ -836,7 +820,7 @@ export function RepoWorkspace() {
                       {issue.labels.map((label) => (
                         <span
                           key={label.name}
-                          className="rounded-full border px-2 py-0.5 text-[11px]"
+                          className="rounded-full border px-2 py-0.5 text-xs"
                           style={{
                             borderColor: `#${label.color}`,
                             color: `#${label.color}`,
@@ -860,7 +844,7 @@ export function RepoWorkspace() {
                   )}
                   {issue.code_references.length > 0 && (
                     <div className="mt-2 flex flex-col gap-1 rounded-md border border-border bg-surface-0 p-2">
-                      <span className="text-[11px] text-text-dim">
+                      <span className="text-xs text-text-dim">
                         Our engine's take on the code this issue names:
                       </span>
                       {issue.code_references.map((ref, i) => (
