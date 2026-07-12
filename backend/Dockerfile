@@ -16,4 +16,6 @@ RUN python -m spacy download en_core_web_sm
 
 COPY . .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Vercel's container runtime injects $PORT (default 80); local docker-compose
+# doesn't set it, so this falls back to 8000 to match compose's port mapping.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
