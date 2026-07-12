@@ -7,6 +7,7 @@ IssueMatch AI matches contributors to GitHub issues while proving, through pure 
 📖 **[Architecture](docs/ARCHITECTURE.md)** — system design, data flow, service map, key formulas and decisions
 🚀 **[Deployment](docs/DEPLOYMENT.md)** — first-time setup, environment variables, running it, honest gaps for real cloud hosting
 🛠️ **[Development](docs/DEVELOPMENT.md)** — everyday workflow, tests, conventions, how to extend the engine
+👋 **[Onboarding Guide](docs/ONBOARDING.md)** — comprehensive guide for onboarding new developers (concepts, decisions, architecture, schemas, models)
 
 ## Stack
 
@@ -74,9 +75,9 @@ Full data flow and formulas: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 docker compose exec backend python -m pytest -q --ignore=workspace tests/
 ```
 
-75 tests, all against real computed values (no mocked business logic) — call-graph resolution including JSX component usage as a real dependency edge, transitive graph BFS, cyclomatic complexity, blast radius arithmetic, skill-gap set difference, issue explanation, readiness formula, label accuracy, real git authorship/churn against temp repos, and an end-to-end integration test that hits the actual Blast Radius Map route through a real FastAPI app and real Redis.
+95 tests, all against real computed values (no mocked business logic) — call-graph resolution including JSX component usage as a real dependency edge, transitive graph BFS, cyclomatic complexity, blast radius arithmetic, skill-gap set difference, issue explanation, readiness formula, label accuracy, security cookie rules, input path validation, real git authorship/churn against temp repos, and an end-to-end integration test that hits the actual Blast Radius Map route through a real FastAPI app and real Redis.
 
-See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the full test/lint/build workflow and project conventions.
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) and [docs/ONBOARDING.md](docs/ONBOARDING.md) for the full test/lint/build workflow, project conventions, and detailed technical specs.
 
 ## Non-goals (for now)
 

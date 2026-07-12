@@ -22,12 +22,25 @@ STATE_COOKIE = "oauth_state"
 SESSION_COOKIE = "session"
 
 
+def _cookie_is_secure() -> bool:
+    """Secure cookies require HTTPS, which local dev (http://localhost)
+    doesn't have -- so this is opt-in only outside development, rather than
+    hardcoded, so a real deployment doesn't silently ship session cookies
+    over plain HTTP."""
+    return get_settings().environment != "development"
+
+
 @router.get("/auth/login")
 async def login() -> RedirectResponse:
     state = secrets.token_urlsafe(24)
     redirect = RedirectResponse(github_client.build_authorize_url(state))
     redirect.set_cookie(
-        STATE_COOKIE, state, httponly=True, samesite="lax", max_age=600
+        STATE_COOKIE,
+        state,
+        httponly=True,
+        samesite="lax",
+        secure=_cookie_is_secure(),
+        max_age=600,
     )
     return redirect
 
@@ -77,6 +90,7 @@ async def callback(
         create_session_token(user.id),
         httponly=True,
         samesite="lax",
+        secure=_cookie_is_secure(),
         max_age=SESSION_MAX_AGE_SECONDS,
     )
     return redirect

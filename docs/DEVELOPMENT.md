@@ -21,7 +21,7 @@ docker compose exec backend python -m pytest -q --ignore=workspace tests/
 
 `--ignore=workspace` matters: `backend/workspace/` accumulates every repo you've analyzed locally (git clones), and pytest will otherwise try to collect files from inside them — including binary/non-UTF-8 files that break collection outright.
 
-As of this writing: **75 tests**, organized one file per service/route under `backend/tests/`. Every test asserts against a real computed value (hand-constructed source snippets, real temp git repos via `subprocess`, or a real FastAPI `TestClient` request against real Redis) — there is no mocked business logic in this suite. Notable ones:
+As of this writing: **95 tests**, organized one file per service/route under `backend/tests/`. Every test asserts against a real computed value (hand-constructed source snippets, real temp git repos via `subprocess`, or a real FastAPI `TestClient` request against real Redis) — there is no mocked business logic in this suite. Notable ones:
 
 - `test_call_graph.py` — including a regression test that JSX component usage counts as a call edge.
 - `test_dependency_graph.py` — precise caller attribution, transitive BFS, ambiguous-name exclusion, recursion not counted as a self-loop.
