@@ -6,6 +6,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+
+# sentence-transformers pulls in torch, which defaults to the CUDA build on
+# Linux (~2GB of unused NVIDIA libraries) even though this app only ever runs
+# CPU inference on a small embedding model. Installing the CPU-only wheel
+# first keeps the later `torch>=1.11.0` requirement already satisfied.
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Bake the embedding model into the image at build time so no network call
