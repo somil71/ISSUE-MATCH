@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-
 from app.services.embeddings import embed_texts
 
 
@@ -45,6 +43,9 @@ def _tfidf_overlap(
     — this is what actually gets shown as "why this matched", not the bare
     similarity float.
     """
+    # Imported here, not at module load -- see embeddings.py for why.
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
     documents = [user_text, *issue_texts]
     vectorizer = TfidfVectorizer(stop_words="english", max_features=2000)
     matrix = vectorizer.fit_transform(documents)

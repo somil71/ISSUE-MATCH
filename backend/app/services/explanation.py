@@ -1,8 +1,6 @@
 import re
 from functools import lru_cache
 
-import spacy
-
 MODEL_NAME = "en_core_web_sm"
 
 _IMPERATIVE_VERBS = frozenset(
@@ -61,6 +59,9 @@ def _strip_prefix(title: str) -> tuple[str, str | None]:
 
 @lru_cache
 def _model():
+    # Imported here, not at module load -- see embeddings.py for why.
+    import spacy
+
     return spacy.load(MODEL_NAME)
 
 
